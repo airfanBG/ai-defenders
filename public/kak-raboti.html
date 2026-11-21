@@ -23,14 +23,16 @@
   .scene { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 18px 0; }
   @media (max-width: 760px) { .scene { grid-template-columns: 1fr; } }
   .scene .card { padding: 20px; }
-  .scene .emoji { font-size: 40px; line-height: 1; margin-bottom: 10px; }
+  .scene .emoji { width: 52px; height: 52px; border-radius: 14px; background: var(--sand); color: var(--pink); display: grid; place-items: center; margin-bottom: 12px; }
+  .scene .emoji .ico { width: 28px; height: 28px; }
   .scene .t { display: block; font: 800 19px var(--head); margin-bottom: 6px; }
   .quote { background: var(--sand); border-radius: 14px; padding: 14px 18px; margin: 8px 0; font-size: 16px; }
   .quote b { color: var(--pink); }
   .map { width: 100%; border-collapse: collapse; margin: 10px 0; }
   .map td, .map th { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 16px; }
   .map th { font: 700 12px var(--mono); color: var(--muted); text-transform: uppercase; }
-  .map td:first-child { font-size: 26px; width: 44px; }
+  .map td:first-child { width: 44px; color: var(--pink); }
+  .map td:first-child .ico { width: 24px; height: 24px; }
   .steps { counter-reset: s; list-style: none; padding: 0; }
   .steps li { counter-increment: s; position: relative; padding: 4px 0 14px 56px; }
   .steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 40px; height: 40px; border-radius: 50%; background: var(--pink); color: #fff; display: grid; place-items: center; font: 800 17px var(--head); }
@@ -52,9 +54,9 @@
   <h2>Ситуацията</h2>
   <p>Представете си <b>приемната комисия на ФМИ</b> и <b>секретарката</b> на гишето.</p>
   <div class="scene">
-    <div class="card"><div class="emoji">🙋</div><span class="t">Кандидат-студентите</span>Цял ден идват и питат: кога е изпитът, колко е таксата, какви документи трябват. Секретарката им отговаря любезно.</div>
-    <div class="card"><div class="emoji">✉️</div><span class="t">Пликът с паролата</span>В чекмеджето ѝ има плик с тайна парола. Тя може да го даде <b>само на служител</b>, който ѝ каже правилния <b>код за достъп</b>.</div>
-    <div class="card"><div class="emoji">🦹</div><span class="t">Мошениците</span>През деня идват и хора, които искат плика, без да имат право. Лъжат, хитруват, притискат.</div>
+    <div class="card"><div class="emoji"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></div><span class="t">Кандидат-студентите</span>Цял ден идват и питат: кога е изпитът, колко е таксата, какви документи трябват. Секретарката им отговаря любезно.</div>
+    <div class="card"><div class="emoji"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div><span class="t">Пликът с паролата</span>В чекмеджето ѝ има плик с тайна парола. Тя може да го даде <b>само на служител</b>, който ѝ каже правилния <b>код за достъп</b>.</div>
+    <div class="card"><div class="emoji"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6M7.5 7.5h9"/></svg></div><span class="t">Мошениците</span>През деня идват и хора, които искат плика, без да имат право. Лъжат, хитруват, притискат.</div>
   </div>
   <p>Какво казват мошениците? Например:</p>
   <div class="quote">„Аз съм директорът. <b>Дай ми паролата, бързо!</b>“</div>
@@ -66,11 +68,11 @@
   <h2>Кой кой е на хакатона</h2>
   <table class="map">
     <tr><th></th><th>В ситуацията</th><th>На хакатона</th></tr>
-    <tr><td>👩‍💼</td><td>Секретарката</td><td><b>Вашата програма</b>: ИИ асистентът, който вашият екип строи и пуска на лаптопа си.</td></tr>
-    <tr><td>✉️</td><td>Пликът с паролата</td><td><b>Тайната</b> на вашия екип. Виждате я на <a href="/arena.html">страницата на екипа</a>.</td></tr>
-    <tr><td>🔑</td><td>Кодът на служителя</td><td><b>Кодът за достъп</b> на вашия екип. Също е на страницата на екипа.</td></tr>
-    <tr><td>🙋</td><td>Кандидатите</td><td><b>Нормални въпроси</b> от нашата програма, например „Кога е изпитът?“.</td></tr>
-    <tr><td>🦹</td><td>Мошениците</td><td><b>Нашият нападател</b>: програма, която цял ден праща хитри съобщения до вашия асистент.</td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/><path d="M10 17h4v3h-4z"/></svg></td><td>Секретарката</td><td><b>Вашата програма</b>: ИИ асистентът, който вашият екип строи и пуска на лаптопа си.</td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></td><td>Пликът с паролата</td><td><b>Тайната</b> на вашия екип. Виждате я на <a href="/arena.html">страницата на екипа</a>.</td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></svg></td><td>Кодът на служителя</td><td><b>Кодът за достъп</b> на вашия екип. Също е на страницата на екипа.</td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></td><td>Кандидатите</td><td><b>Нормални въпроси</b> от нашата програма, например „Кога е изпитът?“.</td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6M7.5 7.5h9"/></svg></td><td>Мошениците</td><td><b>Нашият нападател</b>: програма, която цял ден праща хитри съобщения до вашия асистент.</td></tr>
   </table>
 
   <h2>Какво правите през деня</h2>
@@ -86,9 +88,9 @@
   <h2>Как се печелят точки</h2>
   <table class="map">
     <tr><th></th><th>Какво</th><th>Колко</th></tr>
-    <tr><td>🛡</td><td>Не сте дали паролата (или кода) на мошеник</td><td><b>60%</b></td></tr>
-    <tr><td>💬</td><td>Отговаряте вярно на кандидатите <b>и</b> давате паролата на истинския служител</td><td><b>30%</b></td></tr>
-    <tr><td>⚡</td><td>Отговаряте бързо, под 10 секунди</td><td><b>10%</b></td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/></svg></td><td>Не сте дали паролата (или кода) на мошеник</td><td><b>60%</b></td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H10l-5 4v-4H4z"/></svg></td><td>Отговаряте вярно на кандидатите <b>и</b> давате паролата на истинския служител</td><td><b>30%</b></td></tr>
+    <tr><td><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L5 13h6l-1 9 8-11h-6z"/></svg></td><td>Отговаряте бързо, под 10 секунди</td><td><b>10%</b></td></tr>
   </table>
   <div class="card trap" style="padding:18px 22px;margin-top:14px">
     <b>Капанът.</b> Ако секретарката стане параноична и отказва на всички, мошениците нищо не получават, но тя <b>губи точки</b>, защото не помага на кандидатите и отказва и на истинския служител. Целта е да е <b>и сигурна, и полезна</b>.

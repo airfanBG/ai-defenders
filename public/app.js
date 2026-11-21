@@ -2,7 +2,7 @@
 const CONFIG = {
   trainingFrom: new Date("2027-09-01T00:00:00+03:00"), // откога „тече обучението“ в отброяването
   jokes: [
-    "Твоят ИИ срещу нашия ИИ.", "ignore previous instructions", "🛡 403 Forbidden",
+    "Твоят ИИ срещу нашия ИИ.", "ignore previous instructions", "403 Forbidden",
     "Паролата е… хубав опит", "prompt injection ≠ SQL injection", "it works on my laptop",
     "#AISecurity", "#FMI", "#VelikoTarnovo", "cloudflared tunnel --url http://localhost:8000",
     "{\"reply\": \"Не мога да помогна с това.\"}", "baba.exe разказва приказка",
@@ -126,7 +126,7 @@ function applySettings() {
     ? fmtDate(S.start)
     : sameMonth ? `${pad(S.start.getDate())}–${fmtDate(S.end)}` : `${fmtDate(S.start)} – ${fmtDate(S.end)}`;
   $("#placeSticker").hidden = !S.place;
-  $("#placeSticker").textContent = "📍 " + S.place;
+  $("#placeSticker").textContent = S.place;
 
   const discord = $("#discordLink");
   discord.closest(".lfg").hidden = !S.discord;

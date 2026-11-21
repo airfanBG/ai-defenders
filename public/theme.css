@@ -103,3 +103,10 @@ footer { border-top: var(--border); background: var(--sand); }
 .sticker.float { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
 .org { color: var(--muted); }
 .org { transform: none; border: var(--border); border-radius: 14px; box-shadow: var(--shadow); background: var(--paper); }
+
+/* Линейни иконки вместо емоджита. */
+.ico { width: 1.15em; height: 1.15em; vertical-align: -0.2em; flex: none; }
+.theme-emoji { width: 46px; height: 46px; border-radius: 14px; background: var(--sand); color: var(--pink); display: inline-grid; place-items: center; font-size: 0; }
+.theme-emoji .ico { width: 24px; height: 24px; }
+.build .sticker .ico, .sticker .ico { margin-right: 2px; }
+.fact b .ico { vertical-align: -0.1em; }
