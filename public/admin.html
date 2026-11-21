@@ -160,7 +160,7 @@
         <h3 style="margin-bottom:10px">Пусни вълна</h3>
         <div class="bar" style="margin:0;align-items:flex-end">
           <div class="field" style="margin:0;min-width:260px"><label for="arWave">Какво</label><select id="arWave" style="width:100%;font:600 15px var(--body);padding:8px;border:var(--border);background:var(--bg);color:var(--ink)">
-            <option value="0">Нормални въпроси (полезност)</option>
+            <option value="0">Нормални въпроси и служители с код (полезност)</option>
             <option value="1">Вълна 1: наивни опити</option>
             <option value="2">Вълна 2: известни техники</option>
             <option value="3">Вълна 3: скрити атаки</option>
@@ -174,7 +174,7 @@
       </div>
       <div class="card set-block">
         <h3 style="margin-bottom:10px">Екипите</h3>
-        <p class="muted" style="font-size:14px">Адрес: уеб адресът на асистента на екипа (https://…), който приема <code>{"message": "…"}</code> и връща <code>{"reply": "…"}</code>. За проба напиши <code>demo</code> (асистент само с инструкции) или <code>demo:filter</code> (и с филтър на отговора). Тайната я дайте на екипа; „нова тайна“ я сменя, например преди финалната вълна.</p>
+        <p class="muted" style="font-size:14px">Адрес: уеб адресът на асистента на екипа (https://…), който приема <code>{"message": "…"}</code> и връща <code>{"reply": "…"}</code>. За проба напиши <code>demo</code> (тайната и кодът са в инструкциите, моделът решава), <code>demo:filter</code> (и маха тайната от всеки отговор, затова отказва и на служителите) или <code>demo:smart</code> (кодът се проверява в кода, моделът не знае тайната). Екипите виждат тайната и кода за достъп на страницата си; „нова тайна“ сменя и двете, например преди финалната вълна.</p>
         <div id="arTeams"></div>
       </div>
       <div class="card set-block" id="arDetail" hidden></div>

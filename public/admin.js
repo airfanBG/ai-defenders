@@ -1210,11 +1210,11 @@ async function loadArena() {
   arData = data;
   $("#arFaq").textContent = data.faq;
   if (!data.teams.length) { $("#arTeams").innerHTML = '<p class="muted">Още няма одобрени екипи.</p>'; return; }
-  $("#arTeams").innerHTML = `<div style="overflow-x:auto"><table class="cert-table"><thead><tr><th>Екип</th><th>Адрес на асистента</th><th>Тайна</th><th>Точки</th><th>Защита / полезност / бързина</th><th>Изиграно</th><th></th></tr></thead><tbody>
+  $("#arTeams").innerHTML = `<div style="overflow-x:auto"><table class="cert-table"><thead><tr><th>Екип</th><th>Адрес на асистента</th><th>Тайна и код</th><th>Точки</th><th>Защита / полезност / бързина</th><th>Изиграно</th><th></th></tr></thead><tbody>
     ${data.teams.map((t) => `<tr data-id="${t.team_id}">
       <td class="nm">${esc(t.name)}</td>
       <td style="min-width:240px"><input type="text" data-f="endpoint" value="${esc(t.endpoint || "")}" placeholder="https://… или demo" style="width:100%"></td>
-      <td style="font:700 14px var(--mono);white-space:nowrap">${t.secret ? esc(t.secret) : '<span class="muted">—</span>'}</td>
+      <td style="font:700 14px var(--mono);white-space:nowrap">${t.secret ? esc(t.secret) + `<br><small style="font-weight:500">код: ${esc(t.access_code || "—")}</small>` : '<span class="muted">—</span>'}</td>
       <td style="font:800 18px var(--mono)">${t.score.total.toFixed(1)}</td>
       <td style="font:600 13px var(--mono);white-space:nowrap">${arPct(t.score.defense)} / ${arPct(t.score.help)} / ${arPct(t.score.speed)}</td>
       <td style="font:600 12px var(--mono)">${Object.entries(t.done).filter(([, n]) => n).map(([w, n]) => `${WAVE_NAMES[w]}: ${n}`).join("<br>") || "—"}</td>
@@ -1245,7 +1245,7 @@ async function showArenaDetail(id) {
   box.innerHTML = `<h3 style="margin-bottom:10px">${esc(t.name)}: подробно</h3>
     ${data.results.length ? `<div style="overflow-x:auto"><table class="cert-table"><thead><tr><th>Вълна</th><th>Резултат</th><th>Пратено</th><th>Отговор</th><th>Време</th></tr></thead><tbody>
     ${data.results.map((r) => `<tr class="${r.leaked ? "dup" : ""}"><td>${WAVE_NAMES[r.wave]}</td>
-      <td style="white-space:nowrap">${r.wave === 0 ? (r.ok ? "✓ вярно" : "✗ невярно") : r.leaked ? "💥 изтече" : r.ok ? "🛡 отбранено" : "⚠ грешка"}</td>
+      <td style="white-space:nowrap">${r.wave === 0 ? (r.item.startsWith("k") ? (r.ok ? "🔑 даде на служителя" : "✗ отказа на служителя") : r.ok ? "✓ вярно" : "✗ невярно") : r.leaked ? "💥 изтече" : r.ok ? "🛡 отбранено" : "⚠ грешка"}</td>
       <td style="font-size:13px;max-width:320px">${esc(r.prompt)}</td><td style="font-size:13px;max-width:380px">${esc(r.reply)}</td>
       <td style="font:600 12px var(--mono)">${r.ms != null ? (r.ms / 1000).toFixed(1) + " с" : "—"}</td></tr>`).join("")}
     </tbody></table></div>` : '<p class="muted">Още няма резултати.</p>'}`;

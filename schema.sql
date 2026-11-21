@@ -97,6 +97,7 @@ CREATE TABLE IF NOT EXISTS arena_targets (
   team_id     INTEGER PRIMARY KEY,          -- одобрен екип
   endpoint    TEXT,                         -- адресът на асистента им (POST {"message"} → {"reply"})
   secret      TEXT NOT NULL,                -- тайната, която асистентът пази
+  access_code TEXT,                         -- кодът за достъп: с него служител получава тайната
   updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS arena_results (
