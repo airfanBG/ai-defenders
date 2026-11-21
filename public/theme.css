@@ -1,0 +1,105 @@
+/* „Надхитри ме“: изчистен стил (бяло, тъмносиньо, корал), зарежда се СЛЕД styles.css и го надгражда.
+   Махнеш ли този файл, сайтът се връща към стария жълт стил. */
+:root {
+  --bg: #ffffff;
+  --paper: #ffffff;
+  --sand: #fbf3ef;
+  --ink: #1b2a4a;
+  --muted: #5d6680;
+  --pink: #e8957b;      /* корал: основният акцент */
+  --blue: #e6ecf6;      /* светло синьо */
+  --green: #f7ddd3;     /* праскова */
+  --orange: #f1b8a4;
+  --purple: #ece6f6;
+  --on-accent: #1b2a4a;
+  --line: #e7e4ec;
+  --radius: 18px;
+  --border: 1px solid var(--line);
+  --shadow: 0 6px 20px rgba(27, 42, 74, .07);
+  --shadow-lg: 0 18px 44px rgba(27, 42, 74, .11);
+  --head: "Montserrat", system-ui, sans-serif;
+  --body: "Manrope", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1830; --paper: #17223f; --sand: #1c2847; --ink: #f4efe9; --muted: #aeb6cb; --line: #2a3658;
+    --blue: #22305a; --green: #4a3540; --purple: #2d2f55; --on-accent: #1b2a4a;
+    --shadow: 0 6px 20px rgba(0, 0, 0, .3); --shadow-lg: 0 18px 44px rgba(0, 0, 0, .4);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1830; --paper: #17223f; --sand: #1c2847; --ink: #f4efe9; --muted: #aeb6cb; --line: #2a3658;
+  --blue: #22305a; --green: #4a3540; --purple: #2d2f55; --on-accent: #1b2a4a;
+  --shadow: 0 6px 20px rgba(0, 0, 0, .3); --shadow-lg: 0 18px 44px rgba(0, 0, 0, .4);
+}
+
+body { background: var(--bg); }
+h1, h2, h3 { font-weight: 800; letter-spacing: -0.03em; }
+h2 { color: var(--ink); }
+.kicker { color: var(--pink); font-weight: 700; letter-spacing: .02em; }
+.muted { color: var(--muted); }
+
+/* Нищо завъртяно, нищо с твърди сенки. */
+.fact, .fact:nth-child(odd), .fact:nth-child(even), .s1, .s2, .s3,
+.build .sticker:nth-child(odd), .build .sticker:nth-child(even),
+.team-chips .sticker:nth-child(3n), .team-chips .sticker:nth-child(3n+1) { transform: none; }
+.fact:hover { transform: translateY(-3px); }
+
+/* Бутони: заоблени, корал. */
+.btn { border: 0; border-radius: 999px; box-shadow: 0 8px 20px rgba(232, 149, 123, .35); color: #fff; background: var(--pink); }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(232, 149, 123, .45); }
+.btn:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(232, 149, 123, .35); }
+.btn.alt { background: var(--paper); color: var(--ink); border: 1.5px solid var(--ink); box-shadow: none; }
+.btn.alt:hover { background: var(--sand); box-shadow: none; }
+.icon-btn { border: var(--border); border-radius: 999px; background: var(--paper); }
+
+/* Карти, стикери, полета. */
+.card, details, .day ol, .prize, .fact, .source, .theme, .org-card, .special .card {
+  border: var(--border); border-radius: var(--radius); box-shadow: var(--shadow); background: var(--paper);
+}
+details { overflow: hidden; }
+details[open] summary { border-bottom: 1px solid var(--line); }
+.sticker { border: 0; border-radius: 999px; box-shadow: none; font-weight: 700; }
+.bg-pink { background: var(--pink); color: #fff; }
+.bg-blue { background: var(--blue); color: var(--ink); }
+.bg-green { background: var(--green); color: var(--ink); }
+.bg-orange { background: var(--orange); color: var(--ink); }
+.bg-purple { background: var(--purple); color: var(--ink); }
+.fact.bg-pink { color: #fff; }
+input[type="text"], input[type="email"], input[type="password"], textarea, select {
+  border: 1.5px solid var(--line) !important; border-radius: 12px !important; background: var(--paper) !important;
+}
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--pink) !important; box-shadow: 0 0 0 4px rgba(232, 149, 123, .18); }
+.form-msg { border: 0; border-radius: 12px; }
+.member { border: 1.5px dashed var(--line); border-radius: 14px; }
+.theme li { border-top: 1px solid var(--line); }
+.theme .tag { background: var(--blue); color: var(--ink); border-radius: 6px; }
+.themes .theme .theme-head h3 { box-shadow: none !important; }
+.day li { border-bottom: 1px solid var(--line); }
+.day li.now { background: var(--green); }
+.cd-box { border: 0; border-radius: 14px; background: var(--sand); }
+.train-bar, .cap-bar { border: 0; border-radius: 999px; background: var(--sand); overflow: hidden; }
+.train-bar i, .cap-bar i { border-right: 0; background: var(--pink); }
+.logo-slot { border: 1.5px dashed var(--line); border-radius: 14px; }
+
+/* Навигация и долна лента. */
+.nav { background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px); border-bottom: var(--border); }
+:root[data-theme="dark"] .nav { background: rgba(15, 24, 48, .92); }
+.nav-links a { border-radius: 999px; }
+.nav-links a:hover { border-color: transparent; background: var(--sand); }
+.logo span { background: var(--pink); color: #fff; border-radius: 6px; }
+.marquee { border: 0; background: var(--ink); color: var(--bg); }
+footer { border-top: var(--border); background: var(--sand); }
+
+/* Началото: голямо заглавие с корал, кръгове на фона като в презентация. */
+.hero { position: relative; overflow: hidden; }
+.hero::before, .hero::after { content: ""; position: absolute; border-radius: 50%; z-index: 0; pointer-events: none; }
+.hero::before { width: 620px; height: 620px; right: -180px; top: -140px; background: var(--green); opacity: .7; }
+.hero::after { width: 260px; height: 260px; right: 300px; bottom: -120px; background: var(--pink); opacity: .18; }
+.hero .wrap { position: relative; z-index: 1; }
+.hero h1 { font-family: var(--head); font-weight: 900; color: var(--ink); }
+.hero h1 .hl { background: none; border: 0; transform: none; color: var(--pink); padding: 0; }
+.badge-round { border: 0; box-shadow: var(--shadow-lg); background: var(--pink); color: #fff; }
+.sticker.float { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+.org { color: var(--muted); }
+.org { transform: none; border: var(--border); border-radius: 14px; box-shadow: var(--shadow); background: var(--paper); }
