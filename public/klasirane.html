@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Класиране · Пазителят на тайната</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Manrope:wght@700;800&family=Unbounded:wght@800;900&display=swap&subset=cyrillic" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { min-height: 100%; }
+  body { background: #fff3b0; color: #111; font-family: Manrope, sans-serif; padding: 3vw 4vw;
+    background-image: radial-gradient(#111 1.6px, transparent 1.6px); background-size: 34px 34px; }
+  .top { display: flex; justify-content: space-between; align-items: flex-end; gap: 2vw; margin-bottom: 2.5vw; flex-wrap: wrap; }
+  .tag { display: inline-block; background: #111; color: #fff3b0; font: 700 clamp(12px, 1.2vw, 22px) "JetBrains Mono", monospace; padding: .4em .8em; }
+  h1 { font: 900 clamp(28px, 4.4vw, 84px)/1.02 Unbounded, sans-serif; letter-spacing: -.02em; margin-top: .3em; }
+  h1 span { background: #ff5ca8; padding: 0 .2em; border: .25vw solid #111; box-shadow: .4vw .4vw 0 #111; display: inline-block; transform: rotate(-1.2deg); }
+  .live { font: 700 clamp(12px, 1.1vw, 20px) "JetBrains Mono", monospace; background: #fff; border: .25vw solid #111; padding: .5em .9em; box-shadow: .3vw .3vw 0 #111; }
+  .live i { display: inline-block; width: .7em; height: .7em; border-radius: 50%; background: #ff3b3b; margin-right: .5em; animation: blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .board { display: flex; flex-direction: column; gap: 1vw; }
+  .row { display: grid; grid-template-columns: 5vw minmax(0, 1fr) 30vw 11vw; gap: 2vw; align-items: center; background: #fff; border: .3vw solid #111; box-shadow: .5vw .5vw 0 #111; padding: 1vw 1.6vw; }
+  .row.first { background: #b4f07a; }
+  .pos { font: 900 clamp(22px, 3vw, 56px) Unbounded, sans-serif; text-align: center; }
+  .name { font: 800 clamp(18px, 2.2vw, 42px)/1.1 Manrope, sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .name small { display: block; font: 700 clamp(11px, .95vw, 18px) "JetBrains Mono", monospace; color: #555; margin-top: .3em; }
+  .bars { display: flex; flex-direction: column; gap: .45vw; }
+  .bar { display: grid; grid-template-columns: 8vw 1fr 4vw; gap: .8vw; align-items: center; font: 700 clamp(10px, .9vw, 17px) "JetBrains Mono", monospace; }
+  .track { height: 1.1vw; min-height: 8px; border: .15vw solid #111; background: #fff8d6; }
+  .fill { height: 100%; }
+  .total { font: 900 clamp(24px, 3.4vw, 64px) Unbounded, sans-serif; text-align: right; }
+  .total small { display: block; font: 700 clamp(10px, .9vw, 17px) "JetBrains Mono", monospace; color: #555; }
+  .empty { font: 800 clamp(18px, 2vw, 36px) Manrope, sans-serif; background: #fff; border: .3vw solid #111; padding: 2vw; text-align: center; }
+  .foot { margin-top: 2vw; font: 700 clamp(11px, 1vw, 18px) "JetBrains Mono", monospace; display: flex; justify-content: space-between; gap: 2vw; flex-wrap: wrap; }
+  @media (max-width: 700px) {
+    .row { grid-template-columns: 40px minmax(0, 1fr) 70px; }
+    .bars { grid-column: 1 / -1; }
+    .bar { grid-template-columns: 80px 1fr 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div class="tag" id="ev">класиране</div><h1>Пазителят <span>на тайната</span></h1></div>
+  <div class="live"><i></i><span id="upd">зареждане…</span></div>
+</div>
+<div class="board" id="board"></div>
+<div class="foot"><span id="weights"></span><span id="waves"></span></div>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = (v) => (v == null ? "—" : Math.round(v * 100) + "%");
+const bar = (label, v, color) => `<div class="bar"><span>${label}</span><div class="track"><div class="fill" style="width:${v == null ? 0 : Math.round(v * 100)}%;background:${color}"></div></div><span>${pct(v)}</span></div>`;
+
+async function load() {
+  const d = await fetch("/api/arena/board", { cache: "no-store" }).then((r) => r.json());
+  $("#ev").textContent = (d.name || "хакатон") + " · класиране";
+  $("#weights").textContent = `// точки: защита ${d.weights.defense} · полезност ${d.weights.help} · бързина ${d.weights.speed}`;
+  $("#waves").textContent = d.waves.length ? "изиграни: " + d.waves.map((w) => (w === 0 ? "въпроси" : "вълна " + w)).join(", ") : "още няма изиграни вълни";
+  $("#upd").textContent = "обновено " + new Date(d.at).toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  if (!d.board.length) { $("#board").innerHTML = '<div class="empty">Още няма екипи в арената.</div>'; return; }
+  $("#board").innerHTML = d.board.map((t, i) => `<div class="row${i === 0 && t.total > 0 ? " first" : ""}">
+    <div class="pos">${i + 1}</div>
+    <div class="name">${esc(t.name)}<small>${t.attacks} атаки · ${t.leaks} пробива · ${t.questions} въпроса</small></div>
+    <div class="bars">${bar("защита", t.defense, "#7cd3ff")}${bar("полезност", t.help, "#b4f07a")}${bar("бързина", t.speed, "#ffa94d")}</div>
+    <div class="total">${t.total.toFixed(1)}<small>от 100</small></div>
+  </div>`).join("");
+}
+load().catch(() => ($("#upd").textContent = "няма връзка"));
+setInterval(() => load().catch(() => ($("#upd").textContent = "няма връзка")), 15000);
+</script>
+</body>
+</html>

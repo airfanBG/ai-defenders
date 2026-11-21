@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Сертификат · FMI AI Hackathon</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
+<style>
+  .cert { padding: 40px 0 80px; max-width: 640px; }
+  .cert h1 { font: 800 clamp(30px, 7vw, 52px)/1.05 var(--head); margin-bottom: 12px; }
+  .cert label.f { display: block; font: 800 17px/1.3 var(--body); margin-bottom: 8px; }
+  .cert .req { color: var(--pink); }
+  .cert .hint { font-size: 14px; margin: -2px 0 8px; }
+  .cert .field { margin-bottom: 18px; }
+  .cert select { width: 100%; font: 700 16px var(--body); color: var(--ink); background: var(--bg); border: var(--border); border-radius: 0; padding: 10px 12px; cursor: pointer; }
+  .cert #fullName { font-size: 20px; font-weight: 700; }
+  .kinds { display: flex; gap: 10px; flex-wrap: wrap; }
+  .opt { position: relative; }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt span { display: inline-block; border: var(--border); background: var(--bg); color: var(--ink); padding: 10px 18px; font: 800 17px var(--body); cursor: pointer; user-select: none; }
+  .opt input:checked + span { background: var(--green); color: var(--on-accent); box-shadow: 3px 3px 0 var(--ink); }
+  .opt input:focus-visible + span { outline: 3px dashed var(--pink); outline-offset: 3px; }
+  .preview { border: var(--border); background: var(--bg); padding: 14px 16px; text-align: center; margin-bottom: 18px; }
+  .preview small { font: 700 12px var(--mono); display: block; margin-bottom: 6px; }
+  .preview b { font: 800 22px/1.25 var(--head); display: block; min-height: 1.25em; }
+  .closed { text-align: center; padding: 48px 24px; }
+  .closed .big { font: 800 clamp(26px, 6vw, 40px)/1.15 var(--head); margin: 10px 0 14px; }
+  .preview-note { background: var(--orange); color: var(--on-accent); border: var(--border); padding: 10px 14px; font-weight: 700; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap"><a href="/" class="logo"><span>FMI</span>сертификат</a>
+  <span style="margin-left:auto"></span>
+  <button class="icon-btn" id="themeBtn" aria-label="Смени светла/тъмна тема">◐</button></div></header>
+
+<main class="wrap cert">
+  <div id="root"><p class="muted">Зареждане…</p></div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtDay = (day) => day ? day.split("-").reverse().join(".") : "";
+const DONE_KEY = "certDone";
+
+$("#themeBtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+});
+
+function closed(html) { $("#root").innerHTML = `<div class="card closed">${html}</div>`; }
+
+function form(data, done) {
+  $("#root").innerHTML = `
+    ${data.preview ? `<div class="preview-note">Преглед от админа: формата още не е отворена (отваря се на ${esc(fmtDay(data.day))}). Изпращането няма да мине.</div>` : ""}
+    <div class="kicker">// ${esc(data.name)}</div>
+    <h1>Името ти за сертификата</h1>
+    <p class="lead" style="margin-bottom:24px">Всеки участник попълва сам за себе си. Провери правописа: така ще излезе на сертификата.</p>
+    ${done ? `<div class="preview-note" style="background:var(--green)">От този телефон вече е записано: <b>${esc(done)}</b>. Попълни пак само ако е за друг човек или ако има грешка.</div>` : ""}
+    <form id="f" class="card" novalidate>
+      <div class="field"><label class="f" for="fullName">Три имена <span class="req">*</span></label>
+        <p class="hint muted">На кирилица, с главни първи букви. Например: Мария Иванова Петрова</p>
+        <input type="text" id="fullName" name="fullName" maxlength="100" autocomplete="name"></div>
+      <div class="preview"><small>на сертификата ще пише:</small><b id="pv"></b></div>
+      <div class="field"><span class="f" style="display:block;font:800 17px/1.3 var(--body);margin-bottom:8px">Ти си <span class="req">*</span></span>
+        <div class="kinds">
+          <label class="opt"><input type="radio" name="kind" value="ученик"><span>🎒 ученик</span></label>
+          <label class="opt"><input type="radio" name="kind" value="студент"><span>🎓 студент</span></label>
+        </div></div>
+      <div id="more" hidden>
+        <div class="field"><label class="f" for="grade"><span id="gradeLabel">Клас</span> <span class="req">*</span></label>
+          <select id="grade" name="grade"></select></div>
+        <div class="field"><label class="f" for="school"><span id="schoolLabel">Училище</span> <span class="req">*</span></label>
+          <p class="hint muted" id="schoolHint"></p>
+          <input type="text" id="school" name="school" maxlength="150"></div>
+      </div>
+      <div class="field"><label class="f" for="team">Екип <span class="req">*</span></label>
+        <select id="team" name="teamId"><option value="">избери…</option>
+          ${data.teams.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join("")}
+          <option value="other">моят екип не е в списъка</option></select></div>
+      <div class="field" id="otherBox" hidden><label class="f" for="otherTeam">Име на екипа <span class="req">*</span></label>
+        <input type="text" id="otherTeam" name="otherTeam" maxlength="40"></div>
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="form-actions"><button class="btn" type="submit">Запиши →</button><span class="muted">* задължителни</span></div>
+      <div class="form-msg" id="msg" role="status"></div>
+    </form>`;
+
+  const f = $("#f");
+  let lastKind = "";
+  const sync = () => {
+    $("#otherBox").hidden = $("#team").value !== "other";
+    // Ученик → клас и училище; студент → курс и университет.
+    const kind = f.elements.kind.value;
+    $("#more").hidden = !kind;
+    if (kind && kind !== lastKind) {
+      lastKind = kind;
+      const pupil = kind === "ученик";
+      $("#gradeLabel").textContent = pupil ? "Клас" : "Курс";
+      $("#schoolLabel").textContent = pupil ? "Училище" : "Университет";
+      $("#schoolHint").textContent = pupil ? "Пълното име, например: ПМГ „Академик Иван Гюзелев“, Габрово" : "Пълното име, например: ВТУ „Св. св. Кирил и Методий“";
+      $("#grade").innerHTML = `<option value="">избери…</option>` + data.grades[kind].map((g) => `<option>${esc(g)}</option>`).join("");
+    }
+    // Като на сървъра: думи, писани само с малки букви, започват с главна.
+    $("#pv").textContent = $("#fullName").value.trim().replace(/\s+/g, " ").split(" ")
+      .map((w) => (w === w.toLocaleLowerCase("bg") ? w.charAt(0).toLocaleUpperCase("bg") + w.slice(1) : w)).join(" ");
+  };
+  f.addEventListener("input", sync);
+  sync();
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("#msg");
+    const fail = (t) => { msg.textContent = t; msg.className = "form-msg show err"; };
+    const body = Object.fromEntries(new FormData(f));
+    const words = body.fullName.trim().split(/\s+/).filter(Boolean);
+    if (words.length < 2) return fail("Напиши трите си имена.");
+    if (words.length === 2 && !confirm(`Написал(а) си две имена: „${words.join(" ")}“. Така ли да излезе на сертификата?`)) return;
+    if (!body.kind) return fail("Избери дали си ученик или студент.");
+    if (!body.grade) return fail(body.kind === "ученик" ? "Избери в кой клас си." : "Избери в кой курс си.");
+    if (!body.school.trim()) return fail(body.kind === "ученик" ? "Напиши училището си." : "Напиши университета си.");
+    if (!body.teamId) return fail("Избери екипа си.");
+    if (body.teamId === "other" && body.otherTeam.trim().length < 2) return fail("Напиши името на екипа си.");
+    const btn = f.querySelector("button[type=submit]");
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/cert", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Нещо се обърка. Опитай пак.");
+      try { localStorage.setItem(DONE_KEY, JSON.stringify({ day: data.day, name: out.fullName })); } catch {}
+      closed(`<div class="kicker">// записано!</div><div class="big">${esc(out.fullName)}</div><p>Ще получиш сертификат с това име. 🎓</p>
+        <p class="muted" style="margin-top:14px">Ако има грешка, попълни пак и кажи на организаторите да изтрият стария запис.</p>
+        <p style="margin-top:18px"><a class="btn alt small" href="/sertifikat.html">Попълни за друг човек</a></p>`);
+      scrollTo(0, 0);
+    } catch (err) {
+      fail(err.message);
+      btn.disabled = false;
+    }
+  });
+}
+
+async function main() {
+  let pw = "";
+  try { pw = sessionStorage.getItem("adminPw") || ""; } catch {}
+  const data = await fetch("/api/cert", pw ? { headers: { authorization: "Bearer " + pw } } : {}).then((r) => r.json());
+  if (!data.open && !data.preview) return closed(`<div class="kicker">// сертификат</div><div class="big">Формата се отваря в деня на хакатона${data.day ? ", " + esc(fmtDay(data.day)) : ""}.</div>`);
+  let done = "";
+  try { const d = JSON.parse(localStorage.getItem(DONE_KEY) || "null"); if (d && d.day === data.day) done = d.name; } catch {}
+  form(data, done);
+}
+main().catch(() => closed(`<div class="big">Страницата не се зареди.</div><p>Опитай пак след малко.</p>`));
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>QR за анкетата</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Manrope:wght@600;800&family=Unbounded:wght@800;900&display=swap&subset=cyrillic" rel="stylesheet" crossorigin="anonymous">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #444; font-family: Manrope, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .toolbar { position: sticky; top: 0; z-index: 5; background: #111; color: #fff3b0; padding: 12px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font: 600 15px Manrope, sans-serif; }
+  .toolbar button { font: 800 15px Manrope, sans-serif; background: #ff5ca8; color: #111; border: 3px solid #fff3b0; padding: 8px 16px; cursor: pointer; }
+  .toolbar select, .toolbar input { font: 600 14px Manrope, sans-serif; padding: 5px 8px; border: 2px solid #fff3b0; background: #222; color: #fff3b0; }
+  .toolbar input[type=number] { width: 4em; }
+  .toolbar label { display: flex; gap: 6px; align-items: center; }
+
+  .sheet { width: 210mm; height: 297mm; margin: 12px auto; background: #fff; position: relative; overflow: hidden; }
+  .sheet.land { width: 297mm; height: 210mm; }
+
+  /* Картички A6: 4 на лист, с пунктир за рязане. */
+  .grid { display: grid; grid-template-columns: 105mm 105mm; grid-template-rows: 148.5mm 148.5mm; height: 100%; }
+  .grid::before, .grid::after { content: ""; position: absolute; border: 0 dashed #bbb; }
+  .grid::before { left: 105mm; top: 0; bottom: 0; border-left-width: 0.3mm; }
+  .grid::after { top: 148.5mm; left: 0; right: 0; border-top-width: 0.3mm; }
+  .cell { padding: 6mm; }
+
+  /* Сгъваема табелка: A4 хоризонтално, сгъната по средата; горната половина е обърната. */
+  .half { position: absolute; left: 0; width: 297mm; height: 105mm; padding: 6mm 8mm; }
+  .half.top { top: 0; transform: rotate(180deg); }
+  .half.bottom { top: 105mm; }
+  .fold { position: absolute; top: 105mm; left: 0; right: 0; border-top: 0.4mm dashed #bbb; }
+
+  .card { height: 100%; border: 1mm solid #111; background: #fff3b0; display: flex; flex-direction: column; overflow: hidden; }
+  .head { background: #111; color: #fff3b0; padding: 3mm 4.5mm; display: flex; justify-content: space-between; align-items: baseline; gap: 3mm; }
+  .head small { font: 700 2.8mm "JetBrains Mono", monospace; color: #b4f07a; white-space: nowrap; }
+  .head div { font: 900 3.8mm/1.1 Unbounded, sans-serif; }
+  .body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3mm 5mm; gap: 2.5mm; }
+  .title { font: 900 9mm/1 Unbounded, sans-serif; letter-spacing: -0.3mm; }
+  .lead { font: 700 3.6mm/1.35 Manrope, sans-serif; }
+  .qr { background: #fff; border: 0.8mm solid #111; box-shadow: 1.5mm 1.5mm 0 #111; padding: 2mm; line-height: 0; }
+  .qr svg { width: 52mm; height: 52mm; display: block; }
+  .url { font: 700 2.9mm "JetBrains Mono", monospace; word-break: break-all; }
+  .foot { border-top: 0.6mm solid #111; background: #ff5ca8; padding: 2mm 4.5mm; display: flex; justify-content: space-between; font: 700 2.8mm "JetBrains Mono", monospace; }
+
+  /* В сгъваемата табелка: QR вляво, текстът вдясно. */
+  .half .body { flex-direction: row; gap: 10mm; justify-content: center; text-align: left; }
+  .half .txt { display: flex; flex-direction: column; gap: 3mm; max-width: 150mm; }
+  .half .title { font-size: 13mm; }
+  .half .lead { font-size: 4.6mm; }
+  .half .qr svg { width: 58mm; height: 58mm; }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet { margin: 0; }
+  }
+</style>
+<!-- Размерът на листа зависи от вида: сменя се в render(). -->
+<style id="pageSize">@page { size: A4 landscape; margin: 0; }</style>
+</head>
+<body>
+<div class="toolbar">
+  <label>Вид <select id="kind">
+    <option value="tent">сгъваема табелка за маса (A4, 1 на лист)</option>
+    <option value="cards">картички A6 (4 на лист)</option>
+  </select></label>
+  <label>Брой <input type="number" id="count" value="9" min="1" max="60"></label>
+  <span id="info"></span>
+  <button id="pdfBtn" style="background:#b4f07a" onclick="downloadPdf(this, 'anketa-qr.pdf')">⬇️ Свали PDF</button>
+  <button onclick="window.print()">🖨️ Печат</button>
+</div>
+<div id="cards"></div>
+
+<script src="pdf-export.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad = (n) => String(n).padStart(2, "0");
+// Адресът на анкетата на този сайт (за локални тестове може да се подаде ?url=...).
+const URL_ = new URLSearchParams(location.search).get("url") || location.origin + "/anketa.html";
+let name = "FMI AI Hackathon", date = "";
+
+function qrSvg(text) {
+  const qr = qrcode(0, "M");
+  qr.addData(text);
+  qr.make();
+  return qr.createSvgTag({ cellSize: 8, margin: 1, scalable: true });
+}
+
+function card(qr) {
+  const shortUrl = URL_.replace(/^https?:\/\//, "");
+  return `<div class="card">
+    <div class="head"><div>${esc(name)}</div><small>${esc(date)}</small></div>
+    <div class="body">
+      <div class="qr">${qr}</div>
+      <div class="txt">
+        <div class="title">Как мина?</div>
+        <div class="lead">Сканирай и попълни анкетата. Две минути, анонимно. Помагаш ни да направим следващия хакатон по-добър.</div>
+        <div class="url">${esc(shortUrl)}</div>
+      </div>
+    </div>
+    <div class="foot"><span>📱 насочи камерата към кода</span><span>благодарим!</span></div>
+  </div>`;
+}
+
+function render() {
+  const n = Math.max(1, Math.min(60, Number($("#count").value) || 1));
+  const qr = qrSvg(URL_);
+  let html = "";
+  const tent = $("#kind").value === "tent";
+  $("#pageSize").textContent = `@page { size: A4 ${tent ? "landscape" : "portrait"}; margin: 0; }`;
+  if (tent) {
+    for (let i = 0; i < n; i++) html += `<div class="sheet land"><div class="half top">${card(qr)}</div><div class="fold"></div><div class="half bottom">${card(qr)}</div></div>`;
+    $("#info").textContent = `${n} табелки · ${n} листа A4 хоризонтално`;
+  } else {
+    for (let i = 0; i < n; i += 4) html += `<div class="sheet"><div class="grid">${Array.from({ length: Math.min(4, n - i) }, () => `<div class="cell">${card(qr)}</div>`).join("")}</div></div>`;
+    $("#info").textContent = `${n} картички · ${Math.ceil(n / 4)} листа A4`;
+  }
+  $("#cards").innerHTML = html;
+}
+
+async function main() {
+  try {
+    const s = await fetch("/api/settings").then((r) => r.json());
+    name = s.name || name;
+    const d = new Date(s.start);
+    if (!isNaN(d)) date = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+  } catch {}
+  // По подразбиране: по една табелка за всеки одобрен екип (ако сме влезли в админа).
+  try {
+    const pw = sessionStorage.getItem("adminPw");
+    if (pw) {
+      const r = await fetch("/api/admin/teams", { headers: { authorization: "Bearer " + pw } });
+      if (r.ok) { const k = (await r.json()).teams.filter((t) => t.status === "approved").length; if (k) $("#count").value = k; }
+    }
+  } catch {}
+  if (new URLSearchParams(location.search).get("kind") === "cards") $("#kind").value = "cards";
+  ["#kind", "#count"].forEach((s) => $(s).addEventListener("input", render));
+  await document.fonts.ready;
+  render();
+}
+main();
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Предаване · FMI AI Hackathon</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
+<style>
+  .submit { padding: 40px 0 80px; max-width: 760px; }
+  .submit h1 { font: 800 clamp(30px, 7vw, 52px)/1.05 var(--head); margin-bottom: 12px; }
+  .submit label.f { display: block; font: 800 17px/1.3 var(--body); margin-bottom: 8px; }
+  .submit label.f .req { color: var(--pink); }
+  .submit .hint { font-size: 14px; margin: -2px 0 8px; }
+  .submit .field { margin-bottom: 18px; }
+  .submit select, .submit input[type=text], .submit input[type=email], .submit input[type=url], .submit textarea { width: 100%; }
+  .submit textarea { min-height: 120px; }
+  .submit input[type=url], .submit select { font: 500 16px var(--body); color: var(--ink); background: var(--bg); border: var(--border); border-radius: 0; padding: 10px 12px; }
+  .submit select { font-weight: 700; cursor: pointer; }
+  .deadline { display: inline-block; border: var(--border); background: var(--green); color: var(--on-accent); padding: 6px 12px; font: 700 15px var(--mono); box-shadow: 3px 3px 0 var(--ink); }
+  .deadline.late { background: var(--orange); }
+  .closed { text-align: center; padding: 48px 24px; }
+  .closed .big { font: 800 clamp(26px, 6vw, 40px)/1.15 var(--head); margin: 10px 0 14px; }
+  .preview-note { background: var(--orange); color: var(--on-accent); border: var(--border); padding: 10px 14px; font-weight: 700; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap"><a href="/" class="logo"><span>FMI</span>предаване</a>
+  <span style="margin-left:auto"></span>
+  <button class="icon-btn" id="themeBtn" aria-label="Смени светла/тъмна тема">◐</button></div></header>
+
+<main class="wrap submit">
+  <div id="root"><p class="muted">Зареждане…</p></div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmtDay = (day) => day ? day.split("-").reverse().join(".") : "";
+const DRAFT = "predavaneDraft";
+
+$("#themeBtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+});
+
+function closed(html) { $("#root").innerHTML = `<div class="card closed">${html}</div>`; }
+
+async function main() {
+  let pw = "";
+  try { pw = sessionStorage.getItem("adminPw") || ""; } catch {}
+  const data = await fetch("/api/submit", pw ? { headers: { authorization: "Bearer " + pw } } : {}).then((r) => r.json());
+  if (!data.open && !data.preview) return closed(`<div class="kicker">// предаване</div><div class="big">Предаването се отваря в деня на хакатона${data.day ? ", " + esc(fmtDay(data.day)) : ""}.</div><p class="muted">Тогава тук ще предадете линка към кода и описанието.</p>`);
+
+  const late = data.freeze && data.now > data.freeze;
+  $("#root").innerHTML = `
+    ${data.preview ? `<div class="preview-note">Преглед от админа: предаването още не е отворено (отваря се на ${esc(fmtDay(data.day))}). Изпращането няма да мине.</div>` : ""}
+    <div class="kicker">// ${esc(data.name)}</div>
+    <h1>Предайте решението</h1>
+    <p class="lead" style="margin-bottom:14px">Един човек от екипа предава. Може да предадете пак: новото предаване заменя старото.</p>
+    ${data.freeze ? `<p style="margin-bottom:24px"><span class="deadline${late ? " late" : ""}">${late ? `code freeze беше в ${esc(data.freeze)}: пак може, но ще е отбелязано като късно` : `срок: ${esc(data.freeze)} (code freeze)`}</span></p>` : ""}
+    <form id="f" class="card" novalidate>
+      <div class="field"><label class="f" for="team">Екип <span class="req">*</span></label>
+        <select id="team" name="teamId"><option value="">избери…</option>
+          ${data.teams.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join("")}
+          <option value="other">моят екип не е в списъка</option></select></div>
+      <div class="field" id="otherBox" hidden><label class="f" for="otherName">Име на екипа <span class="req">*</span></label>
+        <input type="text" id="otherName" name="otherName" maxlength="40"></div>
+      <div class="field"><label class="f" for="email">Твоят имейл <span class="req">*</span></label>
+        <p class="hint muted">Същият, с който си записан(а) в екипа. Така знаем, че предаваш ти.</p>
+        <input type="email" id="email" name="email" maxlength="120" autocomplete="email"></div>
+      <div class="field"><label class="f" for="repo">Линк към кода <span class="req">*</span></label>
+        <p class="hint muted">GitHub, GitLab или подобно. Публично или с достъп за журито. Ако не ползвате Git: линк към ZIP в Google Drive.</p>
+        <input type="url" id="repo" name="repo" maxlength="300" placeholder="https://github.com/…"></div>
+      <div class="field"><label class="f" for="demo">Линк към демото</label>
+        <p class="hint muted">По желание: работещ сайт, видео или слайдове.</p>
+        <input type="url" id="demo" name="demo" maxlength="300" placeholder="https://…"></div>
+      <div class="field"><label class="f" for="description">Описание <span class="req">*</span></label>
+        <p class="hint muted">По 1–2 изречения: проблемът, целта, решението, резултатите. И кои данни ползвате.</p>
+        <textarea id="description" name="description" maxlength="1000"></textarea></div>
+      <div class="field"><label class="f" for="today">Какво направихте днес?</label>
+        <p class="hint muted">Само ако проектът е започнат преди хакатона: кое е ново от днес.</p>
+        <textarea id="today" name="today" maxlength="800" style="min-height:90px"></textarea></div>
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="form-actions"><button class="btn" type="submit">Предай →</button><span class="muted">* задължителни</span></div>
+      <div class="form-msg" id="msg" role="status"></div>
+    </form>`;
+
+  const form = $("#f");
+  const sync = () => { $("#otherBox").hidden = $("#team").value !== "other"; };
+  // Черновата остава в браузъра, ако страницата се презареди.
+  try { const d = JSON.parse(localStorage.getItem(DRAFT) || "{}"); for (const [k, v] of Object.entries(d)) if (form.elements[k] && k !== "website") form.elements[k].value = v; } catch {}
+  sync();
+  form.addEventListener("input", () => {
+    sync();
+    try { localStorage.setItem(DRAFT, JSON.stringify(Object.fromEntries(new FormData(form)))); } catch {}
+  });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("#msg");
+    const fail = (t) => { msg.textContent = t; msg.className = "form-msg show err"; };
+    const body = Object.fromEntries(new FormData(form));
+    if (!body.teamId) return fail("Избери екипа си.");
+    const btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/submit", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Нещо се обърка. Опитай пак.");
+      closed(`<div class="kicker">// ${out.updated ? "обновено" : "предадено"}!</div><div class="big">Решението на „${esc(out.team)}“ е ${out.updated ? "обновено" : "предадено"}. 🎉</div>
+        ${out.late ? `<p>Отбелязано е като предадено след code freeze.</p>` : ""}
+        <p class="muted">Ако трябва да поправите нещо, отворете пак тази страница и предайте отново.</p>
+        <p style="margin-top:18px"><a class="btn alt small" href="/predavane.html">Предай пак</a></p>`);
+      scrollTo(0, 0);
+    } catch (err) {
+      fail(err.message);
+      btn.disabled = false;
+    }
+  });
+}
+main().catch(() => closed(`<div class="big">Страницата не се зареди.</div><p>Опитай пак след малко.</p>`));
+</script>
+</body>
+</html>

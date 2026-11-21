@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Листове за журито</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Manrope:wght@500;600;800&family=Unbounded:wght@800;900&display=swap&subset=cyrillic" rel="stylesheet" crossorigin="anonymous">
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  @page wide { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #444; font-family: Manrope, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .toolbar { position: sticky; top: 0; z-index: 5; background: #111; color: #fff3b0; padding: 12px 20px; display: flex; gap: 14px 18px; align-items: center; flex-wrap: wrap; font: 600 15px Manrope, sans-serif; }
+  .toolbar button { font: 800 15px Manrope, sans-serif; background: #ff5ca8; color: #111; border: 3px solid #fff3b0; padding: 8px 16px; cursor: pointer; }
+  .toolbar button.alt { background: #7cd3ff; }
+  .toolbar select { font: 600 15px Manrope, sans-serif; padding: 6px; }
+  .toolbar label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  .toolbar .hint { flex-basis: 100%; font-size: 13px; color: #ddd; }
+  .note { padding: 40px; color: #fff; font: 600 18px Manrope, sans-serif; }
+
+  /* ----- Лист за един екип: A4 портрет ----- */
+  .sheet { width: 210mm; height: 297mm; margin: 12px auto; background: #fff; padding: 12mm 13mm 11mm; display: flex; flex-direction: column; overflow: hidden; page-break-after: always; break-after: page; }
+  .top { display: flex; justify-content: space-between; align-items: center; font: 700 3.3mm "JetBrains Mono", monospace; color: #555; border-bottom: 0.6mm solid #111; padding-bottom: 2.5mm; }
+  .judge { margin-top: 3.5mm; font: 600 4mm Manrope, sans-serif; display: flex; gap: 2mm; align-items: baseline; }
+  .judge b { font-weight: 800; }
+  .judge .line { flex: 1; border-bottom: 0.3mm solid #999; height: 5mm; }
+  .head { display: grid; grid-template-columns: 30mm 1fr; margin-top: 4mm; border: 0.8mm solid #111; box-shadow: 1.2mm 1.2mm 0 #111; }
+  .num { background: var(--c); border-right: 0.8mm solid #111; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2mm 0; }
+  .num small { font: 700 3mm "JetBrains Mono", monospace; }
+  .num b { font: 900 15mm/0.95 Unbounded, sans-serif; letter-spacing: -0.8mm; }
+  .who { padding: 3.5mm 5mm; min-width: 0; background: #fffdf5; }
+  .team { font: 900 9mm/1.05 Unbounded, sans-serif; letter-spacing: -0.3mm; white-space: nowrap; }
+  .members { margin-top: 1.5mm; font: 600 3.6mm Manrope, sans-serif; color: #333; }
+  .idea { margin-top: 1.5mm; font: 500 3.2mm/1.35 Manrope, sans-serif; color: #555; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  table.crit { width: 100%; border-collapse: collapse; margin-top: 6mm; }
+  .crit th { font: 700 3mm "JetBrains Mono", monospace; text-align: left; color: #555; padding: 0 2mm 1.5mm; border-bottom: 0.6mm solid #111; }
+  .crit td { border-bottom: 0.3mm solid #bbb; padding: 2.4mm 2mm; vertical-align: middle; }
+  .crit td.i { font: 900 4.5mm Unbounded, sans-serif; width: 9mm; color: #888; }
+  .crit .cn { font: 800 4.3mm Manrope, sans-serif; }
+  .crit .cd { font: 500 3.2mm/1.35 Manrope, sans-serif; color: #555; margin-top: 0.6mm; }
+  .crit td.max { width: 18mm; text-align: center; font: 700 3.6mm "JetBrains Mono", monospace; color: #555; white-space: nowrap; }
+  .crit td.box { width: 26mm; }
+  .crit td.box div { height: 11mm; border: 0.6mm solid #111; background: #fff; }
+  .crit tr.total td { border-bottom: none; padding-top: 3.5mm; }
+  .crit tr.total .cn { font: 900 5mm Unbounded, sans-serif; text-align: right; }
+  .crit tr.total td.box div { height: 13mm; border-width: 1mm; background: #fff3b0; }
+
+  .lbl { font: 700 3mm "JetBrains Mono", monospace; color: #555; margin: 5mm 0 2mm; }
+  .special { display: flex; flex-wrap: wrap; gap: 2mm 6mm; font: 600 3.5mm Manrope, sans-serif; }
+  .special span::before { content: ""; display: inline-block; width: 3.6mm; height: 3.6mm; border: 0.5mm solid #111; margin-right: 1.8mm; vertical-align: -0.6mm; }
+  .notes { flex: 1; min-height: 20mm; background: repeating-linear-gradient(to bottom, transparent 0, transparent 7.5mm, #ccc 7.5mm, #ccc 7.8mm); }
+  .sign { display: flex; justify-content: space-between; gap: 10mm; margin-top: 4mm; font: 600 3.4mm Manrope, sans-serif; color: #555; }
+  .sign span { flex: 1; border-top: 0.3mm solid #999; padding-top: 1mm; }
+
+  /* ----- Обобщена таблица: A4 пейзаж ----- */
+  .sheet.wide { width: 297mm; height: 210mm; page: wide; padding: 10mm 11mm; }
+  .sheet.wide h1 { font: 900 7mm Unbounded, sans-serif; margin: 3mm 0 1mm; }
+  table.sum { width: 100%; border-collapse: collapse; margin-top: 3mm; table-layout: fixed; }
+  .sum th { font: 700 2.8mm/1.2 "JetBrains Mono", monospace; color: #333; padding: 1.5mm 1mm; border: 0.3mm solid #111; background: #fff3b0; vertical-align: bottom; }
+  .sum th.t { text-align: left; }
+  .sum td { border: 0.3mm solid #111; height: 7.6mm; padding: 0 1.5mm; font: 600 3.4mm Manrope, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sum td.n { text-align: center; font: 800 3.4mm "JetBrains Mono", monospace; background: var(--c); }
+  .sum td.tot { background: #fffdf5; }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar, .note { display: none; }
+    .sheet { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span id="info">Зареждане…</span>
+  <label>Жури: <select id="judge"></select></label>
+  <label><input type="checkbox" id="optSheets" checked> листове по екипи</label>
+  <label><input type="checkbox" id="optSummary" checked> обобщена таблица</label>
+  <button id="pdfBtn" style="background:#b4f07a" onclick="downloadPdf(this, 'listove-zhuri.pdf')">⬇️ Свали PDF</button>
+  <button onclick="window.print()">🖨️ Печат</button>
+  <button class="alt" id="csv">⬇️ CSV за точките</button>
+  <span class="hint">„Свали PDF“ прави файл, в който всеки лист е отделна страница A4. За директен печат: A4, без полета, с включени „Фонове/Background graphics“. Критериите и журито се сменят в админа → „Настройки“ → „Оценяване“.</span>
+</div>
+<div id="cards"></div>
+
+<script src="pdf-export.js"></script>
+<script>
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORS = ["#ff5ca8", "#7cd3ff", "#b4f07a", "#ffa94d", "#c3b1ff"];
+const pad = (n) => String(n).padStart(2, "0");
+const $ = (s) => document.querySelector(s);
+
+function note(text) {
+  $("#info").textContent = "";
+  $("#cards").innerHTML = `<p class="note">${esc(text)}</p>`;
+}
+
+// Смалява името на екипа, докато се събере на един ред.
+function fit(el) {
+  let size = 9;
+  while (el.scrollWidth > el.clientWidth && size > 4) {
+    size -= 0.25;
+    el.style.fontSize = size + "mm";
+  }
+}
+
+let teams = [], settings = null, event = "";
+
+function teamSheet(t, i, judge) {
+  const crit = settings.judging.criteria;
+  const total = crit.reduce((a, c) => a + c.max, 0);
+  const special = settings.special || [];
+  return `
+  <div class="sheet" style="--c:${COLORS[i % COLORS.length]}">
+    <div class="top"><span>${esc(event)}</span><span>// лист за оценяване</span></div>
+    <div class="judge">Жури: ${judge ? `<b>${esc(judge)}</b>` : `<span class="line"></span>`}</div>
+    <div class="head">
+      <div class="num"><small>маса</small><b>${i + 1}</b></div>
+      <div class="who">
+        <div class="team">${esc(t.name)}</div>
+        <div class="members">${t.members.map((m) => esc(m.name)).join(" · ")}</div>
+        ${t.idea ? `<div class="idea">${esc(t.idea)}</div>` : ""}
+      </div>
+    </div>
+    <table class="crit">
+      <thead><tr><th></th><th>критерий</th><th style="text-align:center">макс.</th><th style="text-align:center">точки</th></tr></thead>
+      <tbody>
+        ${crit.map((c, k) => `<tr>
+          <td class="i">${k + 1}</td>
+          <td><div class="cn">${esc(c.name)}</div>${c.desc ? `<div class="cd">${esc(c.desc)}</div>` : ""}</td>
+          <td class="max">0–${c.max}</td>
+          <td class="box"><div></div></td></tr>`).join("")}
+        <tr class="total"><td></td><td><div class="cn">Общо</div></td><td class="max">/ ${total}</td><td class="box"><div></div></td></tr>
+      </tbody>
+    </table>
+    ${special.length ? `<div class="lbl">// предлагам за специална награда</div>
+      <div class="special">${special.map((s) => `<span>${esc(s.text || s.code)}</span>`).join("")}</div>` : ""}
+    <div class="lbl">// бележки: силни страни, какво липсва, въпроси към екипа</div>
+    <div class="notes"></div>
+    <div class="sign"><span>Подпис</span><span>Час</span></div>
+  </div>`;
+}
+
+// По 20 екипа на лист, за да се събере и при 40 екипа.
+const PER_PAGE = 20;
+function summarySheet(judge) {
+  const crit = settings.judging.criteria;
+  const total = crit.reduce((a, c) => a + c.max, 0);
+  const cols = `<col style="width:12mm"><col style="width:58mm">${crit.map(() => "<col>").join("")}<col style="width:20mm"><col style="width:16mm">`;
+  const pages = Math.ceil(teams.length / PER_PAGE);
+  let html = "";
+  for (let p = 0; p < pages; p++) {
+    const part = teams.slice(p * PER_PAGE, (p + 1) * PER_PAGE);
+    html += `
+  <div class="sheet wide">
+    <div class="top"><span>${esc(event)}</span><span>// обобщена таблица${pages > 1 ? ` · ${p + 1}/${pages}` : ""}</span></div>
+    <div class="judge">Жури: ${judge ? `<b>${esc(judge)}</b>` : `<span class="line"></span>`}</div>
+    <table class="sum"><colgroup>${cols}</colgroup>
+      <thead><tr><th>маса</th><th class="t">екип</th>${crit.map((c) => `<th>${esc(c.name)}<br>/ ${c.max}</th>`).join("")}<th>общо<br>/ ${total}</th><th>място</th></tr></thead>
+      <tbody>${part.map((t, k) => { const i = p * PER_PAGE + k; return `<tr style="--c:${COLORS[i % COLORS.length]}"><td class="n">${i + 1}</td><td>${esc(t.name)}</td>${crit.map(() => "<td></td>").join("")}<td class="tot"></td><td></td></tr>`; }).join("")}</tbody>
+    </table>
+  </div>`;
+  }
+  return html;
+}
+
+async function render() {
+  const sel = $("#judge").value;
+  const judges = sel === "*" ? (settings.judging.judges.length ? settings.judging.judges : [""]) : [sel];
+  const withSheets = $("#optSheets").checked, withSummary = $("#optSummary").checked;
+  let html = "";
+  for (const j of judges) {
+    if (withSummary) html += summarySheet(j);
+    if (withSheets) html += teams.map((t, i) => teamSheet(t, i, j)).join("");
+  }
+  $("#cards").innerHTML = html || `<p class="note">Избери поне едно: листове или обобщена таблица.</p>`;
+  const pages = judges.length * ((withSheets ? teams.length : 0) + (withSummary ? Math.ceil(teams.length / PER_PAGE) : 0));
+  $("#info").textContent = `${teams.length} екипа · ${judges.filter(Boolean).length || "без имена на"} жури · ${pages} стр.`;
+  await document.fonts.ready;
+  document.querySelectorAll(".team").forEach(fit);
+}
+
+// Таблица за Excel: ред за всеки член на журито и екип, колона за всеки критерий.
+function downloadCsv() {
+  const cell = (v) => { const s = String(v ?? ""); return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const crit = settings.judging.criteria;
+  const judges = settings.judging.judges.length ? settings.judging.judges : [""];
+  const rows = [["Жури", "Маса", "Екип", ...crit.map((c) => `${c.name} (/${c.max})`), `Общо (/${crit.reduce((a, c) => a + c.max, 0)})`, "Специална награда", "Бележки"]];
+  for (const j of judges) teams.forEach((t, i) => rows.push([j, i + 1, t.name, ...crit.map(() => ""), "", "", ""]));
+  const blob = new Blob(["﻿" + rows.map((r) => r.map(cell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: "tochki-zhuri.csv" });
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function main() {
+  let password = "";
+  try { password = sessionStorage.getItem("adminPw") || ""; } catch {}
+  if (!password) return note("Първо влез в админа (/admin.html) в този браузър и отвори листовете оттам.");
+
+  const auth = { headers: { authorization: "Bearer " + password } };
+  const [tRes, sRes] = await Promise.all([fetch("/api/admin/teams", auth), fetch("/api/admin/settings", auth)]);
+  if (tRes.status === 401 || sRes.status === 401) return note("Сесията в админа е изтекла. Влез отново и отвори листовете оттам.");
+  settings = await sRes.json();
+  // Същата подредба като табелките, за да съвпадат номерата на масите.
+  teams = (await tRes.json()).teams
+    .filter((t) => t.status === "approved")
+    .sort((a, b) => a.name.localeCompare(b.name, "bg"));
+  if (!teams.length) return note("Още няма одобрени екипи.");
+
+  const d = new Date(settings.start);
+  event = `${settings.name} · ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+
+  const js = settings.judging.judges;
+  $("#judge").innerHTML = js.length
+    ? `<option value="*">всички (${js.length} комплекта)</option>` + js.map((j) => `<option value="${esc(j)}">${esc(j)}</option>`).join("") + `<option value="">един комплект без име</option>`
+    : `<option value="*">без имена (1 комплект)</option>`;
+
+  ["#judge", "#optSheets", "#optSummary"].forEach((s) => $(s).addEventListener("change", render));
+  $("#csv").addEventListener("click", downloadCsv);
+  await render();
+}
+
+main().catch((e) => note("Грешка: " + e.message));
+</script>
+</body>
+</html>

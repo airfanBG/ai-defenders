@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Картички за наградите</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Manrope:wght@600;800&family=Unbounded:wght@800;900&display=swap&subset=cyrillic" rel="stylesheet" crossorigin="anonymous">
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #444; font-family: Manrope, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .toolbar { position: sticky; top: 0; z-index: 5; background: #111; color: #fff3b0; padding: 12px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font: 600 15px Manrope, sans-serif; }
+  .toolbar button { font: 800 15px Manrope, sans-serif; background: #ff5ca8; color: #111; border: 3px solid #fff3b0; padding: 8px 16px; cursor: pointer; }
+  .toolbar input { font: 600 14px Manrope, sans-serif; padding: 5px 8px; border: 2px solid #fff3b0; background: #222; color: #fff3b0; width: 4em; }
+
+  /* Един лист A4 = 4 картички A6 (105 × 148,5 mm) с линии за рязане. */
+  .sheet { width: 210mm; height: 297mm; margin: 12px auto; background: #fff; position: relative; overflow: hidden; display: grid; grid-template-columns: 105mm 105mm; grid-template-rows: 148.5mm 148.5mm; }
+  .sheet::before, .sheet::after { content: ""; position: absolute; border: 0 dashed #bbb; }
+  .sheet::before { left: 105mm; top: 0; bottom: 0; border-left-width: 0.3mm; }
+  .sheet::after { top: 148.5mm; left: 0; right: 0; border-top-width: 0.3mm; }
+
+  .card { padding: 6mm; }
+  .in { height: 100%; border: 1mm solid #111; background: #fff3b0; display: flex; flex-direction: column; overflow: hidden; }
+  .head { background: #111; color: #fff3b0; padding: 3.5mm 4.5mm; }
+  .head small { font: 700 2.8mm "JetBrains Mono", monospace; color: #b4f07a; }
+  .head div { font: 900 4.4mm/1.1 Unbounded, sans-serif; margin-top: 1mm; }
+  .body { padding: 4.5mm 4.5mm 3.5mm; display: flex; flex-direction: column; flex: 1; }
+  .kicker { font: 700 3mm "JetBrains Mono", monospace; color: #555; }
+  .title { font: 900 6.6mm/1.05 Unbounded, sans-serif; letter-spacing: -0.2mm; background: var(--c); border: 0.8mm solid #111; box-shadow: 1.2mm 1.2mm 0 #111; padding: 2.5mm 3mm; margin: 2mm 0 3.5mm; }
+  .desc { font: 600 3.5mm/1.4 Manrope, sans-serif; }
+  .book { margin-top: 3mm; font: 800 3.4mm/1.35 Manrope, sans-serif; border-left: 1mm solid #111; padding-left: 2.5mm; }
+  .book span { display: block; font: 700 2.6mm "JetBrains Mono", monospace; color: #555; }
+  .fill { margin-top: auto; display: grid; gap: 4mm; }
+  .fill div { display: flex; align-items: flex-end; gap: 2mm; font: 700 2.8mm "JetBrains Mono", monospace; }
+  .fill div::after { content: ""; flex: 1; border-bottom: 0.3mm solid #111; height: 4mm; }
+  .foot { border-top: 0.6mm solid #111; background: #fff; padding: 2.2mm 4.5mm; display: flex; justify-content: space-between; font: 700 2.6mm "JetBrains Mono", monospace; }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <label>Броя от всяка награда <input type="number" id="copies" value="4" min="1" max="8"></label>
+  <span id="info"></span>
+  <button id="pdfBtn" style="background:#b4f07a" onclick="downloadPdf(this, 'kartichki-nagradi.pdf')">⬇️ Свали PDF</button>
+  <button onclick="window.print()">🖨️ Печат</button>
+  <span>Печат: A4, вертикално, без полета, 100%. Режи по пунктира.</span>
+</div>
+<div id="cards"></div>
+<script src="pdf-export.js"></script>
+<script>
+// Трите специални награди и книгата към всяка.
+const AWARDS = [
+  { title: "Най-добро използване на данните", desc: "Най-смело и умно използване на публични данни.", book: "Factfulness · Ханс Рослинг", c: "#b4f07a" },
+  { title: "Най-полезно решение", desc: "Решението, което най-много би помогнало на хората.", book: "Математика на живот и смърт · Кит Йейтс", c: "#7cd3ff" },
+  { title: "Най-добро демо", desc: "Най-убедителното демо пред журито.", book: "Nexus · Ювал Ноа Харари", c: "#ff5ca8" },
+];
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad = (n) => String(n).padStart(2, "0");
+let name = "FMI AI Hackathon", date = "";
+
+const card = (a) => `
+  <div class="card" style="--c:${a.c}"><div class="in">
+    <div class="head"><small>// ${esc(date)}</small><div>${esc(name)}</div></div>
+    <div class="body">
+      <div class="kicker">специална награда</div>
+      <div class="title">${esc(a.title)}</div>
+      <div class="desc">${esc(a.desc)}</div>
+      <div class="book"><span>книгата е за теб</span>${esc(a.book)}</div>
+      <div class="fill"><div>журито каза</div><div></div><div></div><div>екип</div><div>име</div></div>
+    </div>
+    <div class="foot"><span>Поздравления!</span><span>журито</span></div>
+  </div></div>`;
+
+function draw() {
+  const n = Math.max(1, Math.min(8, Number($("copies").value) || 4));
+  const all = AWARDS.flatMap((a) => Array(n).fill(a));
+  let html = "";
+  for (let i = 0; i < all.length; i += 4) html += `<div class="sheet">${all.slice(i, i + 4).map(card).join("")}</div>`;
+  $("cards").innerHTML = html;
+  $("info").textContent = `${all.length} картички · ${Math.ceil(all.length / 4)} листа A4`;
+}
+
+async function main() {
+  try {
+    const s = await fetch("/api/settings").then((r) => r.json());
+    name = s.name || name;
+    const d = new Date(s.start);
+    if (!isNaN(d)) date = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+  } catch {}
+  draw();
+}
+$("copies").addEventListener("input", draw);
+main();
+</script>
+</body>
+</html>

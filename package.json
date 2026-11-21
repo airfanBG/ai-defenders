@@ -1,0 +1,16 @@
+{
+  "name": "ai-hackathon",
+  "private": true,
+  "scripts": {
+    "db:local": "wrangler d1 execute ai-hackathon-db --local --file=schema.sql",
+    "db:remote": "wrangler d1 execute ai-hackathon-db --remote --file=schema.sql",
+    "dev": "wrangler pages dev --port 8790",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  },
+  "dependencies": {
+    "worker-mailer": "^1.2.1"
+  }
+}

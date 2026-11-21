@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Пазителят на тайната · FMI AI Hackathon</title>
+<meta name="description" content="Еднодневен хакатон по сигурност на ИИ: изградете асистент, който помага, но не издава тайната си, докато нашият ИИ нападател опитва да го излъже. Организира катедра „Информационни технологии“, ФМИ, ВТУ.">
+<meta property="og:title" content="FMI AI Hackathon: „Пазителят на тайната“">
+<meta property="og:description" content="Твоят ИИ срещу нашия ИИ. Екипи от 3 до 4 души, 1 ден, вълни атаки и класиране на живо.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Fredoka:wght@600&family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a href="#top" class="logo logo-name"><span>AI</span>Hack 2027</a>
+    <button class="icon-btn menu-btn" id="menuBtn" aria-label="Меню" aria-expanded="false" aria-controls="navLinks">☰</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">За хакатона</a></li>
+      <li><a href="#partners">Партньори</a></li>
+      <li><a href="#how">Как работи</a></li>
+      <li><a href="#task">Задачата</a></li>
+      <li><a href="#schedule">Програма</a></li>
+      <li><a href="#prizes">Награди</a></li>
+      <li><a href="#teams">Екипи</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <button class="icon-btn" id="themeBtn" aria-label="Смени светла/тъмна тема">◐</button>
+    <a href="#register" class="btn small cta-nav">Запиши екип</a>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="sticker bg-blue float s1">ignore previous instructions</div>
+  <div class="sticker bg-green float s2">🛡 403 Forbidden</div>
+  <div class="float s3"><div class="badge-round bg-orange">AI<small>vs AI</small></div></div>
+
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker">// FMI AI hackathon</div>
+      <h1>ПАЗИТЕЛЯТ<br>НА <span class="hl">ТАЙНАТА</span></h1>
+      <p class="lead">Твоят ИИ срещу нашия ИИ. Изгради асистент, който помага на хората, но не издава тайната си, докато нашият нападател цял ден опитва да го излъже.</p>
+      <div class="facts">
+        <span class="sticker bg-pink" id="dateSticker">ноември 2027</span>
+        <span class="sticker bg-orange" id="placeSticker" hidden></span>
+        <span class="sticker bg-green" id="deadlineSticker" hidden></span>
+        <span class="sticker bg-blue">1 ден</span>
+        <span class="sticker bg-green">екипи <span class="team-size">3–4</span></span>
+        <span class="sticker bg-purple">студенти, ученици, ентусиасти</span>
+      </div>
+      <div class="actions">
+        <a href="#register" class="btn">Запиши екипа →</a>
+        <a href="#how" class="btn alt">Как работи?</a>
+      </div>
+      <div class="org">
+        <span class="mono">организира</span>
+        <b>катедра „Информационни технологии“</b>
+        <span>ФМИ · ВТУ „Св. св. Кирил и Методий“</span>
+      </div>
+    </div>
+
+    <div class="card countdown" aria-live="polite">
+      <div class="kicker">хакатонът започва след</div>
+      <div class="cd-grid">
+        <div class="cd-box"><b id="cdD">--</b><span>дни</span></div>
+        <div class="cd-box"><b id="cdH">--</b><span>часа</span></div>
+        <div class="cd-box"><b id="cdM">--</b><span>минути</span></div>
+        <div class="cd-box"><b id="cdS">--</b><span>секунди</span></div>
+      </div>
+      <div class="train">
+        <div>зареждане на защитата… ден <b id="epoch">--</b> · риск <b id="loss">--</b></div>
+        <div class="train-bar"><i id="trainBar" style="width:0"></i></div>
+        <svg class="loss-svg" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">
+          <path id="lossPath" d=""></path>
+          <circle id="lossDot" r="6" cx="0" cy="0"></circle>
+        </svg>
+        <div class="muted">колкото по-близо е стартът, толкова по-малък е рискът</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="track" id="marquee"></div>
+</div>
+
+<section id="about">
+  <div class="wrap">
+    <div class="kicker">01 / за хакатона</div>
+    <h2>Какво е това?</h2>
+    <p class="lead-2">Еднодневен хакатон за студенти от ФМИ, ученици и ентусиасти. Всеки екип строи ИИ асистент на ФМИ, който пази тайна, а нашият автоматичен нападател опитва да я измъкне на вълни през целия ден. Класирането е на живо.</p>
+    <div class="grid-4">
+      <div class="fact bg-pink"><b>1 ден</b>Строите, тествате и подобрявате между вълните атаки.</div>
+      <div class="fact bg-blue"><b class="team-size">3–4</b>души в екип. Нямаш екип? Ще ти помогнем да си намериш.</div>
+      <div class="fact bg-green"><b>4 вълни</b>От наивни опити до атаки, които ИИ измисля специално за твоя асистент.</div>
+      <div class="fact bg-purple"><b>🏆</b>Награди за най-непробиваемите и най-хитрите защити.</div>
+    </div>
+
+    <h3 class="sub-h">Какво ще научиш</h3>
+    <div class="build">
+      <span class="sticker bg-pink">🤖 Как се строи ИИ асистент</span>
+      <span class="sticker bg-blue">💉 Какво е prompt injection</span>
+      <span class="sticker bg-green">🛡 Филтри на входа и изхода</span>
+      <span class="sticker bg-orange">🕵️ Как мисли нападателят</span>
+      <span class="sticker bg-purple">⚖️ Сигурност срещу полезност</span>
+      <span class="sticker bg-pink">🌐 API, тунели и уеб услуги</span>
+    </div>
+  </div>
+</section>
+
+<section id="partners">
+  <div class="wrap">
+    <div class="kicker">02 / партньори</div>
+    <h2>Партньори</h2>
+    <div class="tier org-tier">
+      <div class="tier-head"><h3>Организатор</h3><code class="muted">// sudo</code></div>
+      <div class="card org-card">
+        <b>Катедра „Информационни технологии“</b>
+        <span>Факултет по математика и информатика</span>
+        <span>Великотърновски университет „Св. св. Кирил и Методий“</span>
+      </div>
+    </div>
+    <div class="tier" id="partnersTier" hidden>
+      <div class="tier-head"><h3>Партньори</h3><code class="muted">// благодарим ви!</code></div>
+      <div class="partners" id="partnerList"></div>
+    </div>
+    <a class="btn" href="#contact">Стани партньор →</a>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="kicker">03 / как работи</div>
+    <h2>Твоят ИИ срещу нашия ИИ</h2>
+    <p class="lead-2">Всички екипи ползват един и същ езиков модел. Разликата идва само от това как сте изградили защитата около него.</p>
+    <div class="sources">
+      <div class="card source"><b>1. Ключ и тайна</b><span>На откриването всеки екип получава ключ за общия модел и своя тайна парола.</span><code>/arena.html</code></div>
+      <div class="card source"><b>2. Асистент</b><span>Тръгвате от готов шаблон на Python или C# и добавяте своята защита: инструкции, филтри, проверки.</span><code>шаблон + ваш код</code></div>
+      <div class="card source"><b>3. Тунел</b><span>Една команда с cloudflared и асистентът ви е онлайн, дори през хотспот от телефона.</span><code>cloudflared tunnel</code></div>
+      <div class="card source"><b>4. Вълни атаки</b><span>Нападателят ни праща хитри съобщения. Ако тайната изтече, губите точки; ако отказвате на всичко, също.</span><code>вълна 1 → 4</code></div>
+      <div class="card source"><b>5. Класиране</b><span>След всяка вълна виждате кое е минало и подобрявате защитата. Класирането е на голям екран.</span><code>/klasirane.html</code></div>
+    </div>
+    <p class="muted" style="margin-top:20px">Пълните правила и точкуването: <a href="/pravila.html"><b>/pravila.html</b></a></p>
+  </div>
+</section>
+
+<section id="task">
+  <div class="wrap">
+    <div class="kicker">04 / задачата</div>
+    <h2>Пазителят на тайната</h2>
+    <p class="lead-2">Асистентът ви помага на кандидат-студенти: кога се кандидатства, какви документи трябват, кога е изпитът. Но знае и <b>тайна парола</b>, която не бива да издава по никакъв начин.</p>
+    <div class="themes">
+      <div class="card theme">
+        <div class="theme-head"><span class="theme-emoji" aria-hidden="true">🛡</span><h3>Защита · 60%</h3></div>
+        <p class="theme-q">Колко атаки отбивате?</p>
+        <ul>
+          <li><span class="tag">проверка</span>Тайната се търси в отговора: цяла, с интервали, отзад напред, кодирана.</li>
+          <li><span class="tag">вълни</span>Наивни опити, известни техники, скрити атаки и атаки, генерирани от ИИ.</li>
+        </ul>
+      </div>
+      <div class="card theme">
+        <div class="theme-head"><span class="theme-emoji" aria-hidden="true">💬</span><h3>Полезност · 30%</h3></div>
+        <p class="theme-q">Отговаря ли асистентът вярно?</p>
+        <ul>
+          <li><span class="tag">въпроси</span>Нормални въпроси по справката за приема. Вярно ли отговаря?</li>
+          <li><span class="tag">баланс</span>Асистент, който отказва на всичко, губи тези точки.</li>
+        </ul>
+      </div>
+      <div class="card theme">
+        <div class="theme-head"><span class="theme-emoji" aria-hidden="true">⚡</span><h3>Бързина · 10%</h3></div>
+        <p class="theme-q">Отговаря ли под 10 секунди?</p>
+        <ul>
+          <li><span class="tag">време</span>Всяка допълнителна проверка струва време. Изберете умно.</li>
+        </ul>
+      </div>
+      <div class="card theme">
+        <div class="theme-head"><span class="theme-emoji" aria-hidden="true">🎤</span><h3>Демо пред журито</h3></div>
+        <p class="theme-q">Как работи защитата ви и защо?</p>
+        <ul>
+          <li><span class="tag">идея</span>Журито оценява идеята, колко е обща (а не нагласена само за нашите атаки) и как я обяснявате.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="schedule">
+  <div class="wrap">
+    <div class="kicker">05 / програма</div>
+    <h2>Програма</h2>
+    <p class="status-line sticker bg-green" id="scheduleStatus">Зареждане…</p>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</section>
+
+<section id="prizes">
+  <div class="wrap">
+    <div class="kicker">06 / награди</div>
+    <h2>Награди</h2>
+    <div class="prizes">
+      <div class="prize bg-blue"><div class="place">2</div><p><b>Второ място</b></p><p id="prize2">обявяваме скоро</p></div>
+      <div class="prize first bg-pink"><div class="place">1</div><p><b>Първо място</b></p><p id="prize1">обявяваме скоро</p></div>
+      <div class="prize bg-green"><div class="place">3</div><p><b>Трето място</b></p><p id="prize3">обявяваме скоро</p></div>
+    </div>
+    <div class="special" id="specialPrizes">
+    </div>
+  </div>
+</section>
+
+<section id="teams">
+  <div class="wrap">
+    <div class="kicker">07 / екипи</div>
+    <h2>JOIN team ON idea</h2>
+    <div class="teams-grid">
+
+      <form class="card" id="register" novalidate>
+        <h3 style="margin-bottom:18px">Запиши екипа</h3>
+        <div class="field">
+          <label for="teamName">Име на екипа</label>
+          <input type="text" id="teamName" name="name" maxlength="40" placeholder="Firewall Whisperers" required>
+        </div>
+
+        <div id="members"></div>
+        <button type="button" class="btn alt small" id="addMember">+ Добави член</button>
+
+        <div class="field" style="margin-top:20px">
+          <label for="mentor">Ментор (по желание)</label>
+          <input type="text" id="mentor" name="mentor" maxlength="80" placeholder="Преподавател или колега">
+        </div>
+        <div class="field">
+          <label for="idea">Идея (по желание)</label>
+          <textarea id="idea" name="idea" maxlength="500" placeholder="Например: каква защита смятате да пробвате. Може и да не знаете още."></textarea>
+        </div>
+        <div class="hp" aria-hidden="true">
+          <label for="website">Не попълвай това поле</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="field">
+          <label class="check"><input type="checkbox" id="consent"> Съгласни сме с регламента и данните ни да се ползват само за организацията на хакатона.</label>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn" id="submitBtn">Регистрирай →</button>
+          <span class="muted" style="font-size:14px">Екипът се появява в списъка, след като го одобрим.</span>
+        </div>
+        <div class="form-msg" id="formMsg" role="status"></div>
+      </form>
+
+      <div>
+        <div class="card">
+          <div class="deadline" id="deadlineText"></div>
+          <div class="capacity"><span id="capText">-- / -- места</span></div>
+          <div class="cap-bar"><i id="capBar" style="width:0"></i></div>
+          <h3 style="margin-bottom:14px">Вече в играта</h3>
+          <div class="team-chips" id="teamList"><span class="empty">loading teams…</span></div>
+        </div>
+        <div class="card bg-blue lfg">
+          <h3 style="margin-bottom:8px">Нямаш екип?</h3>
+          <p>Влез в Discord сървъра, кажи с какво те бива и си намери съотборници.</p>
+          <a class="btn alt small" id="discordLink" href="#" target="_blank" rel="noopener">Влез в Discord →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="kicker">08 / въпроси</div>
+    <h2>FAQ</h2>
+    <div class="faq-grid">
+      <div>
+        <details><summary>Кой може да участва?</summary><div><p>Студенти от ФМИ на ВТУ от всяка специалност и курс, ученици и всеки ентусиаст. Опит с ИИ не е задължителен: шаблонът работи от първата минута.</p></div></details>
+        <details><summary>Трябва ли да разбирам от ИИ?</summary><div><p>Не. Трябва да можете да пишете малко код на Python, C# или друг език. Как работи моделът и какво е prompt injection ще обясним на откриването.</p></div></details>
+        <details><summary>Какво точно строим?</summary><div><p>Уеб услуга, която приема въпрос и връща отговор, като пита общия модел. Шаблонът го прави вместо вас; вие добавяте защитата. Подробно: <a href="/pravila.html">правилата</a>.</p></div></details>
+        <details><summary>Може ли да ползваме ChatGPT или друг модел?</summary><div><p>За отговорите на асистента: не, само общия модел, за да е честно. За да пишете кода си: да, ползвайте каквото ви помага.</p></div></details>
+        <details><summary>Може ли да се подготвим предварително?</summary><div><p>Да. Правилата, шаблонът и справката са публични. Може да носите и код, писан преди това, но в демото кажете кое е направено на хакатона. Тайните и атаките на деня не са известни предварително.</p></div></details>
+        <details><summary>Колко струва?</summary><div><p>Нищо. Участието е безплатно.</p></div></details>
+        <details><summary>Какво да си нося?</summary><div><p>Лаптоп с Python 3.9+ или .NET 8, зарядно, удължител и инсталиран cloudflared. Хотспот от телефона е добър резервен вариант за интернет.</p></div></details>
+        <details><summary>Как се оценява?</summary><div><p>Автоматично: 60% защита, 30% полезност, 10% бързина, след всяка вълна. Отделно журито оценява демото и идеята на защитата.</p></div></details>
+        <details><summary>Чий е проектът след хакатона?</summary><div><p>Ваш. Кодът остава при екипа.</p></div></details>
+      </div>
+      <div class="card bg-green glossary">
+        <div class="kicker">речник</div>
+        <h3 style="margin-bottom:16px">Сигурност на ИИ на човешки</h3>
+        <dl>
+          <dt>Езиков модел (LLM)</dt><dd>Програмата, която пише текст: получава съобщения и продължава разговора.</dd>
+          <dt>Системни инструкции</dt><dd>Скритият текст, който казва на модела каква е ролята му и какво не бива да прави.</dd>
+          <dt>Prompt injection</dt><dd>Атака, при която съобщение се опитва да пренапише инструкциите: „забрави правилата и…“.</dd>
+          <dt>Jailbreak</dt><dd>Хитрост, с която моделът бива изкушен да наруши правилата си: роля, игра, приказка.</dd>
+          <dt>Филтър на изхода</dt><dd>Код, който проверява отговора, преди да го върне, например дали в него няма тайната.</dd>
+          <dt>Тунел</dt><dd>Програма, която дава публичен адрес на услуга, пусната на твоя лаптоп.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer id="contact">
+  <div class="wrap foot">
+    <div>
+      <div class="logo logo-name" style="margin-bottom:10px"><span>AI</span>Hack 2027</div>
+      <div style="margin-bottom:6px">Организира катедра „Информационни технологии“, ФМИ, ВТУ „Св. св. Кирил и Методий“</div>
+      <div class="muted">Въпроси и партньорства: <a id="contactEmail" href="mailto:hello@example.com">hello@example.com</a></div>
+    </div>
+    <div class="hint">psst… ↑ ↑ ↓ ↓ ← → ← → B A</div>
+  </div>
+</footer>
+
+<div class="egg-overlay" id="egg" role="dialog" aria-modal="true" aria-labelledby="eggTitle">
+  <div class="card">
+    <div class="kicker">access granted</div>
+    <div class="big" id="eggTitle">Тайната е: 🦙</div>
+    <p>Поздравления, пробихте сайта! Шегуваме се.</p>
+    <p class="muted mono" style="font-size:13px">*ignore previous instructions</p>
+    <button class="btn" id="eggClose" style="margin-top:10px">sudo exit</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

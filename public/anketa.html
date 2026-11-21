@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Анкета · FMI AI Hackathon</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
+<style>
+  .survey { padding: 40px 0 80px; max-width: 760px; }
+  .survey h1 { font: 800 clamp(30px, 7vw, 52px)/1.05 var(--head); margin-bottom: 12px; }
+  .q { margin-bottom: 18px; }
+  .q h3 { font: 800 18px/1.3 var(--body); margin-bottom: 12px; }
+  .q h3 .req { color: var(--pink); }
+  .opts { display: flex; flex-wrap: wrap; gap: 10px; }
+  .opt { position: relative; }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt span { display: inline-block; border: var(--border); background: var(--bg); color: var(--ink); padding: 9px 14px; font: 700 15px var(--body); cursor: pointer; user-select: none; }
+  .opt input:checked + span { background: var(--green); color: var(--on-accent); box-shadow: 3px 3px 0 var(--ink); }
+  .opt input:focus-visible + span { outline: 3px dashed var(--pink); outline-offset: 3px; }
+  .scale .opt span { width: 52px; text-align: center; font: 800 18px var(--mono); }
+  .scale-labels { display: flex; justify-content: space-between; max-width: 300px; font: 700 12px var(--mono); margin-top: 6px; }
+  .grid-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; padding: 8px 0; border-bottom: 2px dashed var(--ink); }
+  .grid-row:last-child { border-bottom: 0; }
+  .grid-row .opts { gap: 6px; }
+  .grid-row .opt span { width: 42px; padding: 7px 0; text-align: center; font: 800 15px var(--mono); }
+  @media (max-width: 560px) { .grid-row { grid-template-columns: 1fr; } }
+  .other { margin-top: 10px; }
+  .closed { text-align: center; padding: 48px 24px; }
+  .closed .big { font: 800 clamp(26px, 6vw, 40px)/1.15 var(--head); margin: 10px 0 14px; }
+  .preview-note { background: var(--orange); color: var(--on-accent); border: var(--border); padding: 10px 14px; font-weight: 700; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap"><a href="/" class="logo"><span>FMI</span>анкета</a>
+  <span style="margin-left:auto"></span>
+  <button class="icon-btn" id="themeBtn" aria-label="Смени светла/тъмна тема">◐</button></div></header>
+
+<main class="wrap survey">
+  <div id="root"><p class="muted">Зареждане…</p></div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const DONE_KEY = "anketaDone";
+
+$("#themeBtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+});
+
+const fmtDay = (day) => day ? day.split("-").reverse().join(".") : "";
+
+function closed(html) { $("#root").innerHTML = `<div class="card closed">${html}</div>`; }
+
+function opt(type, name, value, label = value) {
+  return `<label class="opt"><input type="${type}" name="${esc(name)}" value="${esc(value)}"><span>${esc(label)}</span></label>`;
+}
+
+function question(q) {
+  const title = `<h3>${esc(q.q)}${q.required ? ' <span class="req">*</span>' : ""}</h3>`;
+  let body = "";
+  if (q.type === "one") body = `<div class="opts">${q.options.map((o) => opt("radio", q.id, o)).join("")}</div>`;
+  if (q.type === "many") body = `<div class="opts">${q.options.map((o) => opt("checkbox", q.id, o)).join("")}</div>` +
+    (q.other ? `<input type="text" class="other" name="${q.id}Other" maxlength="300" placeholder="Друго (по желание)">` : "");
+  if (q.type === "scale") {
+    const nums = Array.from({ length: q.max - q.min + 1 }, (_, i) => q.min + i);
+    body = `<div class="opts scale">${nums.map((n) => opt("radio", q.id, n)).join("")}</div>
+      ${q.labels ? `<div class="scale-labels"><span>${esc(q.labels[0])}</span><span>${esc(q.labels[1])}</span></div>` : ""}`;
+  }
+  if (q.type === "grid") {
+    const nums = Array.from({ length: q.max - q.min + 1 }, (_, i) => q.min + i);
+    body = q.rows.map(([k, label]) => `<div class="grid-row"><span>${esc(label)}</span>
+      <div class="opts">${nums.map((n) => opt("radio", q.id + "." + k, n)).join("")}</div></div>`).join("");
+  }
+  if (q.type === "text") body = `<textarea name="${q.id}" maxlength="${q.max}"></textarea>`;
+  return `<div class="card q" data-q="${q.id}">${title}${body}</div>`;
+}
+
+function collect(form, questions) {
+  const fd = new FormData(form);
+  const out = { website: fd.get("website") || "" };
+  for (const q of questions) {
+    if (q.type === "one") out[q.id] = fd.get(q.id) || undefined;
+    if (q.type === "scale") out[q.id] = fd.get(q.id) ? Number(fd.get(q.id)) : undefined;
+    if (q.type === "many") { out[q.id] = fd.getAll(q.id); if (q.other) out[q.id + "Other"] = fd.get(q.id + "Other") || ""; }
+    if (q.type === "grid") out[q.id] = Object.fromEntries(q.rows.map(([k]) => [k, Number(fd.get(q.id + "." + k)) || undefined]));
+    if (q.type === "text") out[q.id] = fd.get(q.id) || "";
+  }
+  return out;
+}
+
+function applyShowIf(form, questions) {
+  const fd = new FormData(form);
+  for (const q of questions) {
+    if (!q.showIf) continue;
+    const show = Object.entries(q.showIf).every(([k, vals]) => vals.includes(fd.get(k)));
+    form.querySelector(`[data-q="${q.id}"]`).hidden = !show;
+  }
+}
+
+async function main() {
+  let pw = "";
+  try { pw = sessionStorage.getItem("adminPw") || ""; } catch {}
+  const data = await fetch("/api/feedback", pw ? { headers: { authorization: "Bearer " + pw } } : {}).then((r) => r.json());
+
+  let done = false;
+  try { done = localStorage.getItem(DONE_KEY) === data.day; } catch {}
+  const ref = new URLSearchParams(location.search).get("r") || "";
+  if (data.open && done && ref) fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ onlyRef: true, ref }) }).catch(() => {});
+  if (data.open && done) return closed(`<div class="kicker">// благодарим!</div><div class="big">Вече попълни анкетата.</div><p>Отговорът ти е записан. До следващия хакатон! 👋</p>`);
+  if (!data.open && !data.preview) return closed(`<div class="kicker">// анкета</div><div class="big">${data.until && new Date().toISOString().slice(0, 10) > data.until ? "Анкетата вече е затворена. Благодарим!" : `Анкетата се отваря в деня на хакатона${data.day ? ", " + esc(fmtDay(data.day)) : ""}.`}</div>${data.until ? `<p class="muted">Ще може да се попълва до понеделник, ${esc(fmtDay(data.until))}, включително.</p>` : ""}<p class="muted" style="font-size:13px;margin-top:18px">Организатор си? Отвори анкетата от админа („📊 Анкета“ → „Виж анкетата“), за да я разгледаш преди това.</p>`);
+
+  const qs = data.questions;
+  $("#root").innerHTML = `
+    ${data.preview ? `<div class="preview-note">Преглед от админа: анкетата още не е отворена за участниците (отваря се на ${esc(fmtDay(data.day))}). Изпращането няма да мине.</div>` : ""}
+    <div class="kicker">// ${esc(data.name)}</div>
+    <h1>Как мина?</h1>
+    <p class="lead" style="margin-bottom:24px">Две минути, анонимно. Отговорите ни помагат да направим следващия хакатон по-добър.</p>
+    <form id="f" novalidate>
+      ${qs.map(question).join("")}
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="form-actions"><button class="btn" type="submit">Изпрати →</button><span class="muted">* задължителни</span></div>
+      <div class="form-msg" id="msg" role="status"></div>
+    </form>`;
+
+  const form = $("#f");
+  applyShowIf(form, qs);
+  form.addEventListener("change", () => applyShowIf(form, qs));
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = $("#msg");
+    const missing = qs.find((q) => q.required && !new FormData(form).get(q.id));
+    if (missing) {
+      msg.textContent = `Отговори на: „${missing.q}“`; msg.className = "form-msg show err";
+      form.querySelector(`[data-q="${missing.id}"]`).scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    const btn = form.querySelector("button[type=submit]");
+    btn.disabled = true;
+    try {
+      const res = await fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...collect(form, qs), ref: new URLSearchParams(location.search).get("r") || "" }) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Нещо се обърка. Опитай пак.");
+      try { localStorage.setItem(DONE_KEY, data.day); } catch {}
+      closed(`<div class="kicker">// благодарим!</div><div class="big">Записахме отговора ти. 🎉</div><p>Благодарим, че беше с нас. До следващия хакатон!</p>`);
+      scrollTo(0, 0);
+    } catch (err) {
+      msg.textContent = err.message; msg.className = "form-msg show err";
+      btn.disabled = false;
+    }
+  });
+}
+main().catch(() => closed(`<div class="big">Анкетата не се зареди.</div><p>Опитай пак след малко.</p>`));
+</script>
+</body>
+</html>

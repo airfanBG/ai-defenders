@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Пътеводител за екипите</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Manrope:wght@500;600;800&family=Unbounded:wght@800;900&display=swap&subset=cyrillic" rel="stylesheet" crossorigin="anonymous">
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #444; font-family: Manrope, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .toolbar { position: sticky; top: 0; z-index: 5; background: #111; color: #fff3b0; padding: 12px 20px; display: flex; gap: 14px 18px; align-items: center; flex-wrap: wrap; font: 600 15px Manrope, sans-serif; }
+  .toolbar button { font: 800 15px Manrope, sans-serif; background: #ff5ca8; color: #111; border: 3px solid #fff3b0; padding: 8px 16px; cursor: pointer; }
+  .toolbar select { font: 600 15px Manrope, sans-serif; padding: 6px; }
+  .toolbar label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  .toolbar .hint { flex-basis: 100%; font-size: 13px; color: #ddd; }
+  .note { padding: 40px; color: #fff; font: 600 18px Manrope, sans-serif; }
+
+  .sheet { width: 210mm; height: 297mm; margin: 12px auto; background: #fff; overflow: hidden; page-break-after: always; break-after: page; }
+  .inner { height: 297mm; padding: 12mm 13mm 10mm; display: flex; flex-direction: column; transform-origin: 0 0; }
+  .top { display: flex; justify-content: space-between; align-items: center; font: 700 3.3mm "JetBrains Mono", monospace; color: #555; border-bottom: 0.6mm solid #111; padding-bottom: 2.5mm; flex-shrink: 0; }
+  .foot { margin-top: auto; padding-top: 2.5mm; display: flex; justify-content: space-between; font: 700 3mm "JetBrains Mono", monospace; color: #888; flex-shrink: 0; }
+
+  .head { display: grid; grid-template-columns: 30mm 1fr; margin-top: 4mm; border: 0.8mm solid #111; box-shadow: 1.2mm 1.2mm 0 #111; flex-shrink: 0; }
+  .head.slim { grid-template-columns: 20mm 1fr; }
+  .num { background: var(--c); border-right: 0.8mm solid #111; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2mm 0; }
+  .num small { font: 700 3mm "JetBrains Mono", monospace; }
+  .num b { font: 900 15mm/0.95 Unbounded, sans-serif; letter-spacing: -0.8mm; }
+  .head.slim .num b { font-size: 9mm; }
+  .who { padding: 3.5mm 5mm; min-width: 0; background: #fffdf5; display: flex; flex-direction: column; justify-content: center; }
+  .team { font: 900 9mm/1.05 Unbounded, sans-serif; letter-spacing: -0.3mm; white-space: nowrap; }
+  .head.slim .team { font-size: 6mm; }
+  .team.blank { border-bottom: 0.4mm solid #999; height: 9mm; }
+  .members { margin-top: 1.5mm; font: 600 3.6mm Manrope, sans-serif; color: #333; }
+
+  h1 { font: 900 8.5mm/1 Unbounded, sans-serif; letter-spacing: -0.4mm; margin: 6mm 0 2mm; }
+  h2 { font: 900 5.2mm Unbounded, sans-serif; margin: 4.5mm 0 2mm; display: flex; align-items: center; gap: 2.5mm; }
+  h2 i { font-style: normal; background: var(--c, #fff3b0); border: 0.6mm solid #111; padding: 0.4mm 2mm; font-size: 3.6mm; }
+  .lead { font: 500 3.8mm/1.5 Manrope, sans-serif; color: #333; }
+  .lead b { font-weight: 800; color: #111; }
+
+  /* Програмата */
+  table.day { width: 100%; border-collapse: collapse; }
+  .day td { padding: 1.2mm 2mm; border-bottom: 0.3mm solid #ddd; vertical-align: top; font: 600 3.6mm/1.35 Manrope, sans-serif; }
+  .day td.t { width: 16mm; font: 700 3.6mm "JetBrains Mono", monospace; }
+  .day td.w { width: 62mm; font-weight: 800; }
+  .day td.d { color: #555; font-weight: 500; }
+  .day tr.key td { background: #fff3b0; }
+  .day .dayname { font: 700 3.2mm "JetBrains Mono", monospace; color: #555; padding: 3mm 2mm 1mm; }
+
+  /* Какво предавате */
+  .deliver { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+  .deliver div { border: 0.7mm solid #111; padding: 2.5mm 3mm; background: #fffdf5; box-shadow: 1mm 1mm 0 #111; }
+  .deliver b { display: block; font: 800 4mm Manrope, sans-serif; margin-bottom: 1mm; }
+  .deliver span { font: 500 3.2mm/1.3 Manrope, sans-serif; color: #333; }
+  .deliver em { display: inline-block; margin-top: 1.5mm; font: 700 3mm "JetBrains Mono", monospace; font-style: normal; background: var(--c); border: 0.4mm solid #111; padding: 0.3mm 1.5mm; }
+
+  /* Шестте въпроса */
+  .q { margin-top: 3.2mm; display: grid; grid-template-columns: 9mm 1fr; gap: 0 2mm; }
+  .q .n { font: 900 6mm/1 Unbounded, sans-serif; color: #111; }
+  .q .qt { font: 800 4.2mm Manrope, sans-serif; }
+  .q .qh { font: 500 3.2mm/1.35 Manrope, sans-serif; color: #555; margin-top: 0.4mm; }
+  .q .lines { grid-column: 2; height: var(--h, 20mm); background: repeating-linear-gradient(to bottom, transparent 0, transparent 6.6mm, #ccc 6.6mm, #ccc 6.9mm); }
+
+  /* Слайдовете */
+  .slides { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3mm; }
+  .slide { border: 0.6mm solid #111; min-height: 25mm; padding: 2mm 2.2mm; display: flex; flex-direction: column; background: #fff; position: relative; }
+  .slide .sn { font: 700 2.8mm "JetBrains Mono", monospace; color: #888; }
+  .slide b { font: 800 3.5mm/1.15 Manrope, sans-serif; margin-top: 0.5mm; }
+  .slide span { font: 500 2.75mm/1.3 Manrope, sans-serif; color: #555; margin-top: 0.8mm; }
+  .slide.hot { background: var(--c); }
+  .slide.hot .sn { color: #111; }
+  .rules { margin-top: 3mm; display: flex; flex-wrap: wrap; gap: 2mm 3mm; }
+  .rules span { font: 700 3.1mm Manrope, sans-serif; border: 0.5mm solid #111; padding: 0.8mm 2mm; background: #fffdf5; }
+
+  table.crit { width: 100%; border-collapse: collapse; }
+  .crit td { border-bottom: 0.3mm solid #ccc; padding: 1.6mm 2mm; vertical-align: top; }
+  .crit .cn { font: 800 3.6mm Manrope, sans-serif; white-space: nowrap; width: 48mm; }
+  .crit .cd { font: 500 3.2mm/1.35 Manrope, sans-serif; color: #555; }
+  .crit .mx { width: 14mm; text-align: right; font: 700 3.4mm "JetBrains Mono", monospace; white-space: nowrap; }
+  .crit tr.total td { border-bottom: none; font: 900 3.8mm Unbounded, sans-serif; }
+  .special { margin-top: 2mm; font: 500 3.2mm/1.4 Manrope, sans-serif; color: #333; }
+
+  .check { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6mm 6mm; font: 600 3.4mm Manrope, sans-serif; }
+  .check span { display: grid; grid-template-columns: 3.4mm 1fr; gap: 1.8mm; align-items: start; }
+  .check span::before { content: ""; width: 3.4mm; height: 3.4mm; border: 0.5mm solid #111; margin-top: 0.5mm; box-sizing: border-box; }
+
+  /* Източници на данни */
+  .src { display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 2mm; align-items: stretch; }
+  .src div { border: 0.5mm solid #111; padding: 1.8mm 1.5mm; background: #fff; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .src div.main { background: var(--c); border-width: 0.7mm; box-shadow: 1mm 1mm 0 #111; display: flex; flex-direction: column; justify-content: center; }
+  .src b { display: block; font: 800 3mm Manrope, sans-serif; white-space: nowrap; }
+  .src div.main b { font: 900 5mm Unbounded, sans-serif; }
+  .src span { font: 500 2.9mm/1.3 Manrope, sans-serif; color: #333; }
+  .src code { font: 700 2.1mm "JetBrains Mono", monospace; color: #555; white-space: nowrap; }
+  .src div.main code { color: #111; font-size: 3.2mm; margin-top: 1mm; }
+
+  .sheet.empty { display: flex; justify-content: center; align-items: center; font: 700 3.3mm "JetBrains Mono", monospace; color: #bbb; }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar, .note { display: none; }
+    .sheet { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span id="info">Зареждане…</span>
+  <label>За: <select id="mode">
+    <option value="teams">всеки одобрен екип</option>
+    <option value="blank">един комплект без име на екип</option>
+  </select></label>
+  <label><input type="checkbox" id="duplex"> двустранен печат</label>
+  <button id="pdfBtn" style="background:#b4f07a" onclick="downloadPdf(this, 'patevoditel-ekipi.pdf')">⬇️ Свали PDF</button>
+  <button onclick="window.print()">🖨️ Печат</button>
+  <span class="hint">„Свали PDF“ прави файл, в който всеки лист е отделна страница A4. За директен печат: A4, без полета, с включени „Фонове/Background graphics“. При двустранен печат се добавя празна 4-та страница, за да започва всеки екип на нов лист.</span>
+</div>
+<div id="cards"></div>
+
+<script src="pdf-export.js"></script>
+<script>
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORS = ["#ff5ca8", "#7cd3ff", "#b4f07a", "#ffa94d", "#c3b1ff"];
+const pad = (n) => String(n).padStart(2, "0");
+const $ = (s) => document.querySelector(s);
+
+function note(text) {
+  $("#info").textContent = "";
+  $("#cards").innerHTML = `<p class="note">${esc(text)}</p>`;
+}
+
+function fit(el, start) {
+  let size = start;
+  while (el.scrollWidth > el.clientWidth && size > 3.5) {
+    size -= 0.25;
+    el.style.fontSize = size + "mm";
+  }
+}
+
+// Шестте въпроса: същите като в писмото до екипите и в критериите на журито.
+const QUESTIONS = [
+  ["Какъв е проблемът?", "Кой го има, колко е голям и защо има значение? Защо избрахте точно него? Покажете го с данни, не само с думи.", 24],
+  ["Каква е целта ви?", "Какво точно искате да постигнете днес? По-добре една ясна цел, изпълнена докрай, отколкото пет наполовина.", 18],
+  ["Как го решавате?", "Какво правите, какви данни използвате и защо точно тях? Откъде са данните и какво им направихте?", 24],
+  ["Какво постигнахте?", "Какво работи в края на деня? Това ще покажете на живо.", 18],
+  ["Какви са резултатите?", "Какво научихте от данните, какво показва решението ви и какво би се променило, ако някой го използва? Числа, ако имате.", 24],
+  ["Какво следва?", "Как би се развил проектът, ако имахте още седмица или месец?", 14],
+];
+
+// Подсказки към точките от програмата, по ключови думи.
+const TIPS = [
+  [/регистрац/i, "Намерете масата си. Заредете лаптопите."],
+  [/откриван|тема/i, "Слушайте внимателно: тук обявяваме темата и източниците на данни."],
+  [/start|hacking|начало на работа/i, "Първите 30 минути: изберете проблем и напишете отговорите на въпроси 1 и 2."],
+  [/обяд/i, "До обяд: данните са намерени и заредени, има план кой какво прави."],
+  [/ментор/i, "Покажете какво имате и питайте. Менторите са тук, за да ви помогнат да не се заковете."],
+  [/code freeze|freeze/i, "Предайте линк към кода и описанието. След това само слайдове и проба на демото."],
+  [/демо/i, null],
+  [/награжд/i, "Останете до края!"],
+];
+
+let teams = [], settings = null, event = "", freezeAt = "", demoAt = "";
+
+function scheduleRows() {
+  const minutes = settings.demoMinutes || settings.judging?.demoMinutes || 5;
+  return settings.schedule.map((d) => `
+    ${settings.schedule.length > 1 ? `<tr><td colspan="3" class="dayname">// ${esc(d.day)}</td></tr>` : ""}
+    ${d.items.map(([t, w]) => {
+      const tip = TIPS.find(([re]) => re.test(w));
+      const text = tip ? (tip[1] ?? `До ${minutes} минути на екип: слайдове и демо на живо. Говорят всички.`) : "";
+      const key = /freeze|демо|start|hacking/i.test(w);
+      return `<tr class="${key ? "key" : ""}"><td class="t">${esc(t)}</td><td class="w">${esc(w)}</td><td class="d">${esc(text)}</td></tr>`;
+    }).join("")}`).join("");
+}
+
+function header(t, i, slim) {
+  const blank = !t;
+  return `<div class="head ${slim ? "slim" : ""}">
+    <div class="num"><small>маса</small><b>${blank ? "&nbsp;" : i + 1}</b></div>
+    <div class="who">
+      ${blank ? `<div class="team blank"></div>` : `<div class="team" data-fit="${slim ? 6 : 9}">${esc(t.name)}</div>`}
+      ${!slim && !blank ? `<div class="members">${t.members.map((m) => esc(m.name)).join(" · ")}</div>` : ""}
+    </div>
+  </div>`;
+}
+
+function page1(t, i) {
+  const minutes = settings.demoMinutes || settings.judging?.demoMinutes || 5;
+  return `<div class="sheet"><div class="inner">
+    <div class="top"><span>${esc(event)}</span><span>// пътеводител за екипа · 1/3</span></div>
+    ${header(t, i, false)}
+    <h1 style="margin:4.5mm 0 1.5mm">Не просто код. Решение.</h1>
+    <p class="lead">Днес имате един ден, за да вземете <b>истински проблем</b>, да го решите с <b>публични данни</b> и да покажете <b>работещ прототип</b> пред журито. Най-силните проекти не са тези с най-много функции, а тези, които ясно показват <b>какъв проблем решават и какво променят</b>. На стр. 2 са шестте въпроса, на стр. 3 е планът на презентацията.</p>
+
+    <h2>Денят ви</h2>
+    <table class="day">${scheduleRows()}</table>
+
+    <h2>Какво предавате</h2>
+    <div class="deliver">
+      <div><b>1. Код</b><span>Линк към репото (GitHub или подобно). Да е публично или достъпно за журито.</span>${freezeAt ? `<br><em>до ${esc(freezeAt)}</em>` : ""}</div>
+      <div><b>2. Описание</b><span>По 1–2 изречения за проблема, целта, решението и резултатите. Това са въпроси 1, 2, 3 и 5.</span>${freezeAt ? `<br><em>до ${esc(freezeAt)}</em>` : ""}</div>
+      <div><b>3. Презентация</b><span>Слайдове по плана на страница 3 и демо на живо. До ${minutes} минути, след това въпроси от журито.</span>${demoAt ? `<br><em>в ${esc(demoAt)}</em>` : ""}</div>
+    </div>
+    <h2>Откъде да вземете данни</h2>
+    <div class="src">
+      <div class="main"><b>data.egov.bg</b><span>Отворени данни от държавните институции. Започнете оттук.</span><code>data.egov.bg ↗</code></div>
+      <div><b>НСИ</b><code>nsi.bg</code></div>
+      <div><b>Eurostat</b><code>eurostat</code></div>
+      <div><b>World Bank</b><code>data.worldbank.org</code></div>
+      <div><b>OpenStreetMap</b><code>openstreetmap.org</code></div>
+    </div>
+    <div class="foot"><span>Въпроси? Търсете организаторите или менторите.</span><span>${esc(settings.email || "")}</span></div>
+  </div></div>`;
+}
+
+function page2(t, i) {
+  return `<div class="sheet"><div class="inner">
+    <div class="top"><span>${esc(event)}</span><span>// шестте въпроса · 2/3</span></div>
+    ${header(t, i, true)}
+    <p class="lead" style="margin-top:4mm">Попълвайте ги през деня, не накрая. Ако отговорите ясно на всеки, вече имате скелета на презентацията и на описанието, което предавате.</p>
+    ${QUESTIONS.map(([q, h, mm], k) => `<div class="q" style="--h:${mm}mm">
+      <div class="n">${k + 1}</div>
+      <div><div class="qt">${esc(q)}</div><div class="qh">${esc(h)}</div></div>
+      <div class="lines"></div>
+    </div>`).join("")}
+    <div class="foot"><span>Име на проекта: ______________________________</span><span>Кой какво прави? Разпределете го рано.</span></div>
+  </div></div>`;
+}
+
+function page3(t, i) {
+  const crit = settings.judging?.criteria || settings.criteria || [];
+  const total = crit.reduce((a, c) => a + c.max, 0);
+  const minutes = settings.demoMinutes || settings.judging?.demoMinutes || 5;
+  const special = settings.special || [];
+  const SLIDES = [
+    ["Заглавие", "Име на проекта, екип, членове. Едно изречение какво прави."],
+    ["Проблемът", "Въпрос 1. Кой го има и колко е голям. Една цифра или графика от данните."],
+    ["Целта", "Въпрос 2. Какво искахте да постигнете днес. Едно изречение."],
+    ["Решението и данните", "Въпрос 3. Как работи, какви данни и защо. Проста схема е по-добра от текст."],
+    ["Демо на живо", "Въпрос 4. Покажете го да работи. Имайте скрийншот за резерва.", true],
+    ["Резултати", "Въпрос 5. Какво показват данните и решението. Числа."],
+    ["Какво следва", "Въпрос 6. Следващите стъпки, ако имахте още време."],
+    ["Благодарим", "Линк към кода. Готови сте за въпроси от журито."],
+  ];
+  return `<div class="sheet"><div class="inner">
+    <div class="top"><span>${esc(event)}</span><span>// презентацията · 3/3</span></div>
+    ${header(t, i, true)}
+    <h2>Слайдовете <i>до ${minutes} мин.</i></h2>
+    <div class="slides">${SLIDES.map(([b, s, hot], k) => `<div class="slide ${hot ? "hot" : ""}"><div class="sn">${k + 1}</div><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join("")}</div>
+    <div class="rules"><span>малко текст, големи шрифтове</span><span>една идея на слайд</span><span>графики вместо таблици</span><span>говорят всички от екипа</span><span>засечете времето</span></div>
+
+    <h2>Как оценява журито</h2>
+    <table class="crit">
+      ${crit.map((c) => `<tr><td class="cn">${esc(c.name)}</td><td class="cd">${esc(c.desc)}</td><td class="mx">${c.max} т.</td></tr>`).join("")}
+      <tr class="total"><td class="cn">Общо</td><td></td><td class="mx">${total} т.</td></tr>
+    </table>
+    ${special.length ? `<p class="special"><b>Специални награди:</b> ${special.map((s) => esc(s.text || s.code)).join(" · ")}</p>` : ""}
+
+    <h2>Преди демото</h2>
+    <div class="check">
+      <span>Линкът към кода и описанието са предадени</span>
+      <span>Лаптопът е зареден, зарядното е под ръка</span>
+      <span>Слайдовете са отворени и на цял екран</span>
+      <span>Демото е пробвано поне веднъж от начало до край</span>
+      <span>Знаем кой кой слайд говори</span>
+      <span>Засекли сме времето: до ${minutes} минути</span>
+      <span>Имаме резервен скрийншот или видео на демото</span>
+      <span>Подготвили сме се за въпроса „а защо точно тези данни?“</span>
+    </div>
+    <div class="foot"><span>Успех! 🚀</span><span>${esc(settings.name)}</span></div>
+  </div></div>`;
+}
+
+// Ако съдържанието е по-дълго от листа (дълга програма, много критерии, дълги имена),
+// го смаляваме равномерно, вместо долната част да се отреже.
+function fitSheets() {
+  document.querySelectorAll(".sheet > .inner").forEach((inner) => {
+    const H = inner.parentElement.clientHeight;
+    inner.style.transform = ""; inner.style.width = ""; inner.style.height = "";
+    let k = 1;
+    while (inner.scrollHeight > inner.clientHeight + 1 && k > 0.6) {
+      k -= 0.02;
+      inner.style.width = 100 / k + "%";
+      inner.style.height = H / k + "px";
+      inner.style.transform = `scale(${k})`;
+    }
+  });
+}
+
+async function render() {
+  const list = $("#mode").value === "blank" ? [null] : teams;
+  const duplex = $("#duplex").checked;
+  $("#cards").innerHTML = list.map((t, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<div style="--c:${c}">${page1(t, i)}${page2(t, i)}${page3(t, i)}${duplex ? `<div class="sheet empty">бележки</div>` : ""}</div>`;
+  }).join("");
+  const pages = list.length * (duplex ? 4 : 3);
+  $("#info").textContent = $("#mode").value === "blank" ? `1 комплект без име · ${pages} стр.` : `${teams.length} екипа · ${pages} стр.`;
+  await document.fonts.ready;
+  document.querySelectorAll(".team[data-fit]").forEach((el) => fit(el, Number(el.dataset.fit)));
+  fitSheets();
+}
+
+async function main() {
+  let password = "";
+  try { password = sessionStorage.getItem("adminPw") || ""; } catch {}
+  if (!password) return note("Първо влез в админа (/admin.html) в този браузър и отвори пътеводителя оттам.");
+
+  const auth = { headers: { authorization: "Bearer " + password } };
+  const [tRes, sRes] = await Promise.all([fetch("/api/admin/teams", auth), fetch("/api/admin/settings", auth)]);
+  if (tRes.status === 401 || sRes.status === 401) return note("Сесията в админа е изтекла. Влез отново и отвори пътеводителя оттам.");
+  settings = await sRes.json();
+  // Същата подредба като табелките, за да съвпадат номерата на масите.
+  teams = (await tRes.json()).teams
+    .filter((t) => t.status === "approved")
+    .sort((a, b) => a.name.localeCompare(b.name, "bg"));
+
+  const d = new Date(settings.start);
+  event = `${settings.name} · ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+  const items = settings.schedule.flatMap((x) => x.items);
+  freezeAt = items.find(([, w]) => /freeze/i.test(w))?.[0] || "";
+  demoAt = (items.find(([, w]) => /демо/i.test(w)) || items.find(([, w]) => /жури/i.test(w)))?.[0] || "";
+
+  if (!teams.length) $("#mode").value = "blank";
+  ["#mode", "#duplex"].forEach((s) => $(s).addEventListener("change", render));
+  await render();
+}
+
+main().catch((e) => note("Грешка: " + e.message));
+</script>
+</body>
+</html>

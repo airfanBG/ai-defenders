@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Жури · решенията</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
+<style>
+  .jury { padding: 32px 0 80px; max-width: 900px; }
+  .jury h1 { font: 800 clamp(28px, 6vw, 46px)/1.05 var(--head); margin-bottom: 10px; }
+  .count { display: inline-block; border: var(--border); background: var(--green); color: var(--on-accent); padding: 6px 12px; font: 700 15px var(--mono); box-shadow: 3px 3px 0 var(--ink); margin: 6px 0 22px; }
+  .team { margin-bottom: 18px; }
+  .team h2 { font: 800 22px/1.2 var(--head); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .tn { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border: var(--border); font: 800 18px var(--mono); color: #111; }
+  .pill { font: 700 12px var(--mono); border: 2px solid var(--ink); padding: 2px 8px; color: #111; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 12px; }
+  .links a { word-break: break-all; }
+  .team p { margin: 6px 0 0; white-space: pre-wrap; }
+  .team.missing { opacity: .55; }
+  .closed { text-align: center; padding: 48px 24px; }
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap"><a href="/" class="logo"><span>FMI</span>жури</a>
+  <span style="margin-left:auto"></span>
+  <button class="icon-btn" id="themeBtn" aria-label="Смени светла/тъмна тема">◐</button></div></header>
+
+<main class="wrap jury">
+  <div id="root"><p class="muted">Зареждане…</p></div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORS = ["#ff5ca8", "#7cd3ff", "#b4f07a", "#ffa94d", "#c3b1ff"];
+const safeHref = (u) => (/^https?:\/\//i.test(u || "") ? u : "#");
+const hm = (utc) => utc ? new Date(utc.replace(" ", "T") + "Z").toLocaleTimeString("bg-BG", { timeZone: "Europe/Sofia", hour: "2-digit", minute: "2-digit" }) : "";
+const key = new URLSearchParams(location.search).get("k") || "";
+
+$("#themeBtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+});
+
+function team({ table, name, s }) {
+  const color = table ? COLORS[(table - 1) % COLORS.length] : "#ddd";
+  const status = !s ? '<span class="pill" style="background:#eee">още не е предадено</span>'
+    : `<span class="pill" style="background:${s.late ? "var(--orange)" : "var(--green)"}">${s.late ? "⏰ след code freeze" : "✓ предадено"} · ${esc(hm(s.at))}</span>`;
+  return `<div class="card team${s ? "" : " missing"}">
+    <h2><span class="tn" style="background:${color}">${table || "?"}</span>${esc(name)} ${status}</h2>
+    ${s ? `<div class="links"><a class="btn small" href="${esc(safeHref(s.repo))}" target="_blank" rel="noopener noreferrer">💻 Кодът ↗</a>
+      ${s.demo ? `<a class="btn alt small" href="${esc(safeHref(s.demo))}" target="_blank" rel="noopener noreferrer">▶ Демо ↗</a>` : ""}</div>
+      <p class="muted" style="font:500 13px var(--mono);word-break:break-all">${esc(s.repo)}</p>
+      <p>${esc(s.description)}</p>${s.today ? `<p><b>Ново от днес:</b> ${esc(s.today)}</p>` : ""}` : ""}
+  </div>`;
+}
+
+async function load() {
+  const res = await fetch("/api/jury?k=" + encodeURIComponent(key));
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { $("#root").innerHTML = `<div class="card closed"><p>${esc(data.error || "Грешка при зареждане.")}</p></div>`; return; }
+  const done = data.rows.filter((r) => r.s).length;
+  $("#root").innerHTML = `<div class="kicker">// ${esc(data.name)} · за журито</div>
+    <h1>Предадените решения</h1>
+    <span class="count">${done} от ${data.rows.length} предадени${data.freeze ? ` · code freeze ${esc(data.freeze)}` : ""}</span>
+    ${data.rows.map(team).join("")}
+    <p class="muted" style="font-size:13px">Страницата се обновява сама на всяка минута.</p>`;
+}
+load().catch(() => {});
+setInterval(() => { if (!document.hidden) load().catch(() => {}); }, 60000);
+</script>
+</body>
+</html>

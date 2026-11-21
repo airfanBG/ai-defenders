@@ -1,0 +1,14 @@
+name = "ai-hackathon"
+compatibility_date = "2026-09-01"
+pages_build_output_dir = "./public"
+
+# Отделна база само за новото събитие. database_id се попълва след
+# npx wrangler d1 create ai-hackathon-db
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-hackathon-db"
+database_id = "9143c298-e9be-4942-a329-502c504f0b0c"
+
+# Workers AI: общият модел за екипите (/api/llm) и нападателят.
+[ai]
+binding = "AI"

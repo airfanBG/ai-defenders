@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Афиш за залата</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Manrope:wght@600;800&family=Unbounded:wght@800;900&display=swap&subset=cyrillic" rel="stylesheet" crossorigin="anonymous">
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #444; font-family: Manrope, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .toolbar { position: sticky; top: 0; z-index: 5; background: #111; color: #fff3b0; padding: 12px 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font: 600 15px Manrope, sans-serif; }
+  .toolbar button { font: 800 15px Manrope, sans-serif; background: #ff5ca8; color: #111; border: 3px solid #fff3b0; padding: 8px 16px; cursor: pointer; }
+  .toolbar input[type=text], .toolbar select { font: 600 14px Manrope, sans-serif; padding: 5px 8px; border: 2px solid #fff3b0; background: #222; color: #fff3b0; }
+  .toolbar label { display: flex; gap: 6px; align-items: center; }
+
+  /* Един афиш = A4 вертикално. */
+  .sheet { width: 210mm; height: 297mm; margin: 12px auto; background: #fff3b0; position: relative; overflow: hidden; border: 6mm solid #111; display: flex; flex-direction: column; }
+  .top { background: #111; color: #fff3b0; padding: 8mm 10mm 7mm; }
+  .top .kicker { font: 700 5mm "JetBrains Mono", monospace; color: #b4f07a; }
+  .top .name { font: 900 12mm/1.02 Unbounded, sans-serif; letter-spacing: -0.4mm; margin-top: 2mm; }
+  .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6mm 10mm; gap: 5mm; }
+  .label { font: 900 15mm/1 Unbounded, sans-serif; background: #ff5ca8; border: 1.6mm solid #111; box-shadow: 3mm 3mm 0 #111; padding: 4mm 8mm; letter-spacing: -0.4mm; }
+  .time { font: 700 9mm "JetBrains Mono", monospace; }
+  .where { display: flex; gap: 6mm; align-items: stretch; margin-top: 4mm; }
+  .box { border: 1.6mm solid #111; background: #fff; box-shadow: 3mm 3mm 0 #111; padding: 4mm 7mm 5mm; display: flex; flex-direction: column; align-items: center; }
+  .box small { font: 700 5mm "JetBrains Mono", monospace; color: #555; }
+  .box b { font: 900 40mm/0.95 Unbounded, sans-serif; letter-spacing: -2mm; }
+  .box.room { background: #b4f07a; }
+  .arrow { font: 900 60mm/1 Unbounded, sans-serif; margin-top: 2mm; display: inline-block; }
+  .bottom { border-top: 1.6mm solid #111; background: #fff; padding: 5mm 10mm; display: flex; align-items: center; gap: 5mm; min-height: 24mm; }
+  .bottom .event { font: 700 4.2mm "JetBrains Mono", monospace; white-space: nowrap; }
+  .logos { margin-left: auto; display: flex; align-items: center; gap: 3mm; flex-wrap: wrap; justify-content: flex-end; }
+  .logos .logo { height: 13mm; padding: 1.5mm 2.5mm; border: 0.5mm solid #111; display: flex; align-items: center; }
+  .logos img { max-height: 10mm; max-width: 36mm; object-fit: contain; }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar { display: none; }
+    .sheet { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <label>Надпис <input type="text" id="fLabel" value="ОТКРИВАНЕ" size="14"></label>
+  <label>Час <input type="text" id="fTime" value="" size="6"></label>
+  <label>Етаж <input type="text" id="fFloor" value="4" size="3"></label>
+  <label>Зала <input type="text" id="fRoom" value="401" size="5"></label>
+  <label>Стрелка <select id="fArrow">
+    <option value="">без</option><option value="↑" selected>↑ напред</option><option value="→">→ надясно</option>
+    <option value="←">← наляво</option><option value="↓">↓ надолу</option></select></label>
+  <label style="cursor:pointer"><input type="checkbox" id="fLogos" checked> партньори</label>
+  <button id="pdfBtn" style="background:#b4f07a" onclick="downloadPdf(this, 'afish-zala.pdf')">⬇️ Свали PDF</button>
+  <button onclick="window.print()">🖨️ Печат</button>
+  <span>Печат: A4, вертикално, без полета, с „Фонове/Background graphics“.</span>
+</div>
+<div class="sheet">
+  <div class="top">
+    <div class="kicker">// насам за хакатона</div>
+    <div class="name" id="name">FMI AI Hackathon</div>
+  </div>
+  <div class="main">
+    <div class="label" id="label"></div>
+    <div class="time" id="time"></div>
+    <div class="where">
+      <div class="box"><small>етаж</small><b id="floor"></b></div>
+      <div class="box room"><small>зала</small><b id="room"></b></div>
+    </div>
+    <div class="arrow" id="arrow"></div>
+  </div>
+  <div class="bottom">
+    <div class="event" id="event"></div>
+    <div class="logos" id="logos"></div>
+  </div>
+</div>
+<script src="pdf-export.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad = (n) => String(n).padStart(2, "0");
+let partners = [];
+
+function draw() {
+  $("label").textContent = $("fLabel").value;
+  $("time").textContent = $("fTime").value ? "от " + $("fTime").value + " ч." : "";
+  $("floor").textContent = $("fFloor").value;
+  $("room").textContent = $("fRoom").value;
+  $("arrow").textContent = $("fArrow").value;
+  $("logos").innerHTML = $("fLogos").checked ? partners.map((p) =>
+    `<div class="logo" style="background:${esc(p.bg)}"><img src="${esc(p.logo)}" alt="${esc(p.name)}"></div>`).join("") : "";
+}
+
+async function main() {
+  try {
+    const [settings, list] = await Promise.all([
+      fetch("/api/settings").then((r) => r.json()),
+      fetch("/api/partners").then((r) => r.json()).then((d) => d.partners || []),
+    ]);
+    partners = list;
+    $("name").textContent = settings.name;
+    const d = new Date(settings.start);
+    if (!isNaN(d)) {
+      $("fTime").value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      $("event").textContent = `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+    }
+  } catch {}
+  draw();
+}
+document.querySelectorAll(".toolbar input, .toolbar select").forEach((el) => el.addEventListener("input", draw));
+main();
+</script>
+</body>
+</html>

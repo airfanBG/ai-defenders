@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Табелки за масите</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Manrope:wght@600;800&family=Unbounded:wght@800;900&display=swap&subset=cyrillic" rel="stylesheet" crossorigin="anonymous">
+<style>
+  @page { size: A4 landscape; margin: 0; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #444; font-family: Manrope, sans-serif; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .toolbar { position: sticky; top: 0; z-index: 5; background: #111; color: #fff3b0; padding: 12px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font: 600 15px Manrope, sans-serif; }
+  .toolbar button { font: 800 15px Manrope, sans-serif; background: #ff5ca8; color: #111; border: 3px solid #fff3b0; padding: 8px 16px; cursor: pointer; }
+  .note { padding: 40px; color: #fff; font: 600 18px Manrope, sans-serif; }
+
+  /* Една табелка = A4 хоризонтално, сгъната по средата. Горната половина е обърната. */
+  .sheet { width: 297mm; height: 210mm; margin: 12px auto; background: #fff; position: relative; overflow: hidden; page-break-after: always; break-after: page; }
+  .half { position: absolute; left: 0; width: 297mm; height: 105mm; display: grid; grid-template-columns: 62mm 1fr; }
+  .half.top { top: 0; transform: rotate(180deg); }
+  .half.bottom { top: 105mm; }
+  .fold { position: absolute; top: 105mm; left: 0; right: 0; border-top: 0.4mm dashed #bbb; }
+
+  .num { background: var(--c); border-right: 3mm solid #111; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .num small { font: 700 4mm "JetBrains Mono", monospace; }
+  .num b { font: 900 34mm/0.9 Unbounded, sans-serif; letter-spacing: -2mm; }
+  .body { padding: 8mm 10mm 7mm; display: flex; flex-direction: column; min-width: 0; border-top: 3mm solid #111; border-bottom: 3mm solid #111; background: #fffdf5; }
+  .half.top .body { border-top: 3mm solid #111; }
+  .kicker { font: 700 3.6mm "JetBrains Mono", monospace; color: #555; }
+  .team { font: 900 18mm/1 Unbounded, sans-serif; letter-spacing: -0.6mm; margin: 2mm 0 4mm; white-space: nowrap; }
+  .members { display: flex; flex-wrap: wrap; gap: 2.5mm; }
+  .members span { font: 800 5.2mm Manrope, sans-serif; border: 0.8mm solid #111; padding: 1mm 3mm; background: var(--c); box-shadow: 1mm 1mm 0 #111; }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; }
+  .foot .event { font: 700 3.6mm "JetBrains Mono", monospace; }
+  .sponsor { display: flex; align-items: center; gap: 3mm; font: 700 3mm "JetBrains Mono", monospace; color: #555; }
+  .sponsor span { white-space: nowrap; }
+  .sponsor .logo { height: 11mm; padding: 1.5mm 2.5mm; border: 0.6mm solid #111; display: flex; align-items: center; }
+  .sponsor img { max-height: 8mm; max-width: 38mm; }
+  /* Малък ред с останалите партньори. */
+  .partners { margin-top: auto; display: flex; align-items: center; gap: 2mm; flex-wrap: nowrap; min-width: 0; padding-bottom: 2.5mm; }
+  .partners small { font: 700 2.6mm "JetBrains Mono", monospace; color: #777; white-space: nowrap; margin-right: 1mm; }
+  .partners .logo { height: 8mm; padding: 1mm 1.8mm; border: 0.4mm solid #111; display: flex; align-items: center; justify-content: center; flex: 0 1 auto; min-width: 0; }
+  .partners img { max-height: 5.6mm; max-width: 24mm; object-fit: contain; }
+  .partners + .foot { margin-top: 0; }
+
+  @media print {
+    body { background: #fff; }
+    .toolbar, .note { display: none; }
+    .sheet { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <span id="info">Зареждане…</span>
+  <label style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" id="others" checked> ред с останалите партньори</label>
+  <button id="pdfBtn" style="background:#b4f07a" onclick="downloadPdf(this, 'tabelki-masi.pdf')">⬇️ Свали PDF</button>
+  <button onclick="window.print()">🖨️ Печат</button>
+  <span>В прозореца за печат избери A4, хоризонтално, без полета, и включи „Фонове/Background graphics“.</span>
+</div>
+<div id="cards"></div>
+
+<script src="pdf-export.js"></script>
+<script>
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORS = ["#ff5ca8", "#7cd3ff", "#b4f07a", "#ffa94d", "#c3b1ff"];
+const pad = (n) => String(n).padStart(2, "0");
+
+function note(text) {
+  document.getElementById("info").textContent = "";
+  document.getElementById("cards").innerHTML = `<p class="note">${esc(text)}</p>`;
+}
+
+// Смалява името на екипа, докато се събере на един ред.
+function fit(el) {
+  let size = 18;
+  while (el.scrollWidth > el.clientWidth && size > 7) {
+    size -= 0.5;
+    el.style.fontSize = size + "mm";
+  }
+}
+
+const $others = document.getElementById("others");
+
+async function main() {
+  let password = "";
+  try { password = sessionStorage.getItem("adminPw") || ""; } catch {}
+  if (!password) return note("Първо влез в админа (/admin.html) в този браузър и отвори табелките оттам.");
+
+  const auth = { headers: { authorization: "Bearer " + password } };
+  const [tRes, settings, partners] = await Promise.all([
+    fetch("/api/admin/teams", auth),
+    fetch("/api/settings").then((r) => r.json()),
+    fetch("/api/partners").then((r) => r.json()).then((d) => d.partners),
+  ]);
+  if (tRes.status === 401) return note("Сесията в админа е изтекла. Влез отново и отвори табелките оттам.");
+  const teams = (await tRes.json()).teams
+    .filter((t) => t.status === "approved")
+    .sort((a, b) => a.name.localeCompare(b.name, "bg"));
+  if (!teams.length) return note("Още няма одобрени екипи.");
+
+  const sponsorId = Number(new URLSearchParams(location.search).get("sponsor"));
+  const sponsor = partners.find((p) => p.id === sponsorId);
+  const d = new Date(settings.start);
+  const event = `${settings.name} · ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+
+  const others = partners.filter((p) => p.id !== sponsor?.id);
+  const othersRow = () => $others.checked && others.length ? `
+        <div class="partners"><small>с подкрепата на</small>${others.map((p) => `<div class="logo" style="background:${esc(p.bg)}"><img src="${esc(p.logo)}" alt="${esc(p.name)}"></div>`).join("")}</div>` : "";
+  const half = (t, i, cls) => `
+    <div class="half ${cls}" style="--c:${COLORS[i % COLORS.length]}">
+      <div class="num"><small>маса</small><b>${i + 1}</b></div>
+      <div class="body">
+        <div class="kicker">// екип</div>
+        <div class="team">${esc(t.name)}</div>
+        <div class="members">${t.members.map((m) => `<span>${esc(m.name)}</span>`).join("")}</div>${othersRow()}
+        <div class="foot">
+          <div class="event">${esc(event)}</div>
+          ${sponsor ? `<div class="sponsor"><span>генерален спонсор</span><div class="logo" style="background:${esc(sponsor.bg)}"><img src="${esc(sponsor.logo)}" alt="${esc(sponsor.name)}"></div></div>` : ""}
+        </div>
+      </div>
+    </div>`;
+
+  const draw = async () => {
+    document.getElementById("cards").innerHTML = teams.map((t, i) =>
+      `<div class="sheet">${half(t, i, "top")}<div class="fold"></div>${half(t, i, "bottom")}</div>`).join("");
+    await document.fonts.ready;
+    document.querySelectorAll(".team").forEach(fit);
+  };
+  $others.addEventListener("change", draw);
+  await draw();
+  document.getElementById("info").textContent = `${teams.length} табелки (само одобрените екипи, по азбучен ред)`;
+
+}
+
+main().catch((e) => note("Грешка: " + e.message));
+</script>
+</body>
+</html>

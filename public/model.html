@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Общият модел · FMI Hackathon</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
+<style>
+  .docs { padding: 40px 0 80px; max-width: 900px; }
+  .docs h1 { font: 800 clamp(30px, 7vw, 52px)/1.05 var(--head); margin-bottom: 12px; }
+  .docs h2 { font: 800 24px/1.2 var(--head); margin: 32px 0 12px; }
+  .docs p, .docs li { font-size: 16px; line-height: 1.55; }
+  .docs ul { padding-left: 22px; }
+  .docs code { font: 600 14px var(--mono); background: var(--bg); border: 2px solid var(--ink); padding: 0 5px; }
+  .docs table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 15px; }
+  .docs th, .docs td { text-align: left; padding: 8px; border-bottom: 2px dashed var(--ink); vertical-align: top; }
+  .docs th { font: 700 12px var(--mono); border-bottom: 3px solid var(--ink); }
+  .langs { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+  .langs button { font: 800 15px var(--body); border: var(--border); background: var(--bg); color: var(--ink); padding: 8px 14px; cursor: pointer; }
+  .langs button[aria-selected="true"] { background: var(--pink); color: #111; box-shadow: 3px 3px 0 var(--ink); }
+  .code { position: relative; margin-top: 12px; }
+  .code pre { white-space: pre; overflow-x: auto; font: 500 13.5px/1.55 var(--mono); border: var(--border); background: #111; color: #f4f4f4; padding: 16px; margin: 0; }
+  .code .copy { position: absolute; top: 8px; right: 8px; font: 700 12px var(--mono); border: 2px solid #f4f4f4; background: #111; color: #f4f4f4; padding: 4px 10px; cursor: pointer; }
+  .note { font-size: 14px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap"><a href="/" class="logo"><span>FMI</span>модел</a>
+  <span style="margin-left:auto"></span>
+  <button class="icon-btn" id="themeBtn" aria-label="Смени светла/тъмна тема">◐</button></div></header>
+
+<main class="wrap docs">
+  <div class="kicker">// за екипите</div>
+  <h1>Общият модел</h1>
+  <p class="lead">Всички екипи ползват един и същ езиков модел през нашия адрес. Ключът ви го дават организаторите: пазете го като парола и не го слагайте в код, който качвате публично.</p>
+
+  <h2>Накратко</h2>
+  <table>
+    <tr><th>Адрес</th><td><code id="url"></code> (POST)</td></tr>
+    <tr><th>Ключ</th><td>заглавка <code>Authorization: Bearer fmi_…</code></td></tr>
+    <tr><th>Тяло (JSON)</th><td><code>{"messages": [{"role": "system", "content": "…"}, {"role": "user", "content": "…"}], "max_tokens": 300}</code></td></tr>
+    <tr><th>Отговор (JSON)</th><td><code>{"reply": "…", "model": "…"}</code>; при грешка <code>{"error": "…"}</code></td></tr>
+  </table>
+  <ul>
+    <li><code>role</code> е <code>system</code> (инструкциите на асистента), <code>user</code> (въпросът) или <code>assistant</code> (предишен отговор, ако пращате целия разговор).</li>
+    <li><code>max_tokens</code> и <code>temperature</code> (0–2) са по желание.</li>
+    <li>Моделът не помни разговора: пращайте всички предишни съобщения при всяка заявка.</li>
+  </ul>
+
+  <h2>Пример</h2>
+  <div class="langs" role="tablist" id="langs"></div>
+  <div class="code"><button class="copy" id="copy">копирай</button><pre id="code"></pre></div>
+  <p class="note muted" id="libNote"></p>
+
+  <h2>Грешки</h2>
+  <table>
+    <tr><th>Код</th><th>Значи</th><th>Какво да направите</th></tr>
+    <tr><td>401</td><td>няма ключ или ключът е грешен</td><td>проверете заглавката <code>Authorization</code></td></tr>
+    <tr><td>403</td><td>ключът е спрян</td><td>питайте организаторите</td></tr>
+    <tr><td>429</td><td>надвишен лимит заявки в минута или на ден</td><td>изчакайте и пращайте по-рядко</td></tr>
+    <tr><td>503</td><td>моделът е изключен от организаторите</td><td>изчакайте началото</td></tr>
+    <tr><td>400 / 502</td><td>грешно тяло на заявката или моделът не отговори</td><td>вижте полето <code>error</code> в отговора</td></tr>
+  </table>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const URL_ = location.origin + "/api/llm";
+$("#url").textContent = URL_;
+$("#themeBtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+});
+
+// Всеки пример праща едно и също: системни инструкции и въпрос, и печата полето "reply".
+const SYS = "Ти си асистент на ФМИ. Отговаряй кратко и на български.";
+const Q = "Кои специалности има във ФМИ?";
+const EX = {
+  "Python": { lib: "Нужна е библиотеката requests: pip install requests", code: `import os
+import requests
+
+KEY = os.environ["FMI_KEY"]  # ключът ви, сложен в променлива на средата
+
+def ask(messages, max_tokens=300):
+    r = requests.post(
+        "${URL_}",
+        headers={"Authorization": f"Bearer {KEY}"},
+        json={"messages": messages, "max_tokens": max_tokens},
+        timeout=60,
+    )
+    data = r.json()
+    if r.status_code != 200:
+        raise RuntimeError(f"{r.status_code}: {data.get('error')}")
+    return data["reply"]
+
+print(ask([
+    {"role": "system", "content": "${SYS}"},
+    {"role": "user", "content": "${Q}"},
+]))` },
+  "C#": { lib: "Без допълнителни пакети: .NET 6 или по-нов (HttpClient и System.Text.Json).", code: `using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+
+var key = Environment.GetEnvironmentVariable("FMI_KEY");  // ключът ви
+using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", key);
+
+var body = new {
+    messages = new[] {
+        new { role = "system", content = "${SYS}" },
+        new { role = "user", content = "${Q}" },
+    },
+    max_tokens = 300,
+};
+
+var res = await http.PostAsJsonAsync("${URL_}", body);
+var json = await res.Content.ReadFromJsonAsync<JsonElement>();
+if (!res.IsSuccessStatusCode)
+    throw new Exception($"{(int)res.StatusCode}: {json.GetProperty("error").GetString()}");
+Console.WriteLine(json.GetProperty("reply").GetString());` },
+  "Java": { lib: "Java 11 или по-нов (java.net.http) и библиотеката Gson за JSON: Maven com.google.code.gson:gson или Gradle implementation 'com.google.code.gson:gson:2.11.0'.", code: `import com.google.gson.*;
+import java.net.URI;
+import java.net.http.*;
+import java.time.Duration;
+
+public class Ask {
+    public static void main(String[] args) throws Exception {
+        String key = System.getenv("FMI_KEY");  // ключът ви
+
+        JsonArray messages = new JsonArray();
+        messages.add(message("system", "${SYS}"));
+        messages.add(message("user", "${Q}"));
+        JsonObject body = new JsonObject();
+        body.add("messages", messages);
+        body.addProperty("max_tokens", 300);
+
+        HttpRequest req = HttpRequest.newBuilder(URI.create("${URL_}"))
+            .timeout(Duration.ofSeconds(60))
+            .header("Authorization", "Bearer " + key)
+            .header("Content-Type", "application/json; charset=utf-8")
+            .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+            .build();
+        HttpResponse<String> res = HttpClient.newHttpClient().send(req, HttpResponse.BodyHandlers.ofString());
+
+        JsonObject data = JsonParser.parseString(res.body()).getAsJsonObject();
+        if (res.statusCode() != 200)
+            throw new RuntimeException(res.statusCode() + ": " + data.get("error").getAsString());
+        System.out.println(data.get("reply").getAsString());
+    }
+
+    static JsonObject message(String role, String content) {
+        JsonObject m = new JsonObject();
+        m.addProperty("role", role);
+        m.addProperty("content", content);
+        return m;
+    }
+}` },
+  "C++": { lib: "Нужни са libcurl и nlohmann/json (например: vcpkg install curl nlohmann-json). Компилиране: g++ -std=c++17 ask.cpp -lcurl", code: `#include <curl/curl.h>
+#include <nlohmann/json.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+
+using json = nlohmann::json;
+
+static size_t collect(char* data, size_t size, size_t n, void* out) {
+    static_cast<std::string*>(out)->append(data, size * n);
+    return size * n;
+}
+
+int main() {
+    const char* key = std::getenv("FMI_KEY");  // ключът ви
+    json body = {
+        {"messages", {
+            {{"role", "system"}, {"content", "${SYS}"}},
+            {{"role", "user"}, {"content", "${Q}"}},
+        }},
+        {"max_tokens", 300},
+    };
+    std::string payload = body.dump(), response;
+    std::string auth = std::string("Authorization: Bearer ") + (key ? key : "");
+
+    CURL* curl = curl_easy_init();
+    curl_slist* headers = nullptr;
+    headers = curl_slist_append(headers, auth.c_str());
+    headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
+    curl_easy_setopt(curl, CURLOPT_URL, "${URL_}");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, collect);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+    CURLcode rc = curl_easy_perform(curl);
+    long status = 0;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status);
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
+    if (rc != CURLE_OK) { std::cerr << curl_easy_strerror(rc) << "\\n"; return 1; }
+
+    json data = json::parse(response);
+    if (status != 200) { std::cerr << status << ": " << data.value("error", "") << "\\n"; return 1; }
+    std::cout << data["reply"].get<std::string>() << "\\n";
+}` },
+  "PHP": { lib: "Без допълнителни пакети: PHP 7.4 или по-нов с разширението curl.", code: `<?php
+$key = getenv('FMI_KEY');  // ключът ви
+
+$body = [
+    'messages' => [
+        ['role' => 'system', 'content' => '${SYS}'],
+        ['role' => 'user', 'content' => '${Q}'],
+    ],
+    'max_tokens' => 300,
+];
+
+$ch = curl_init('${URL_}');
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => ["Authorization: Bearer $key", 'Content-Type: application/json; charset=utf-8'],
+    CURLOPT_POSTFIELDS => json_encode($body, JSON_UNESCAPED_UNICODE),
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 60,
+]);
+$response = curl_exec($ch);
+$status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+
+$data = json_decode($response, true);
+if ($status !== 200) {
+    throw new Exception("$status: " . ($data['error'] ?? $response));
+}
+echo $data['reply'], PHP_EOL;` },
+  "curl": { lib: "За бърза проба от терминала в Linux или macOS. В Windows (PowerShell, cmd и Git Bash) кирилицата в командния ред се поврежда и моделът връща празен отговор: запишете JSON-а във файл body.json (UTF-8) и пратете с curl.exe … -d @body.json.", code: `curl ${URL_} \\
+  -H "Authorization: Bearer $FMI_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"messages":[{"role":"system","content":"${SYS}"},{"role":"user","content":"${Q}"}],"max_tokens":300}'` },
+};
+
+function show(lang) {
+  for (const b of document.querySelectorAll("#langs button")) b.setAttribute("aria-selected", b.dataset.lang === lang);
+  $("#code").textContent = EX[lang].code;
+  $("#libNote").textContent = EX[lang].lib;
+  try { localStorage.setItem("modelLang", lang); } catch {}
+}
+$("#langs").innerHTML = Object.keys(EX).map((l) => `<button role="tab" data-lang="${l}">${l}</button>`).join("");
+$("#langs").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) show(b.dataset.lang); });
+$("#copy").addEventListener("click", () => { navigator.clipboard?.writeText($("#code").textContent); $("#copy").textContent = "копирано"; setTimeout(() => ($("#copy").textContent = "копирай"), 1500); });
+let saved = "Python";
+try { saved = localStorage.getItem("modelLang") || saved; } catch {}
+show(EX[saved] ? saved : "Python");
+</script>
+</body>
+</html>

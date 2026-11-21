@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Арена · страница на екипа</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ff5ca8'/><text x='50' y='68' font-size='36' text-anchor='middle' font-family='monospace' font-weight='bold'>FMI</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@500;700;800&family=Unbounded:wght@700;800&display=swap&subset=cyrillic" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem("theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
+<style>
+  .arena { padding: 36px 0 80px; max-width: 920px; }
+  .arena h1 { font: 800 clamp(30px, 7vw, 52px)/1.05 var(--head); margin-bottom: 12px; }
+  .arena h2 { font: 800 22px/1.2 var(--head); margin-bottom: 10px; display: flex; gap: 12px; align-items: center; }
+  .arena h2 .n { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: var(--border); background: var(--green); color: #111; font: 800 16px var(--mono); }
+  .arena p, .arena li { font-size: 16px; line-height: 1.55; }
+  .arena ol, .arena ul { padding-left: 22px; }
+  .arena code { font: 600 14px var(--mono); background: var(--bg); border: 2px solid var(--ink); padding: 0 5px; word-break: break-all; }
+  .arena input[type=text], .arena input[type=password] { width: 100%; }
+  .secret { font: 800 clamp(26px, 6vw, 44px) var(--mono); letter-spacing: .04em; background: #111; color: #b4f07a; padding: 10px 16px; display: inline-block; user-select: all; }
+  .cmd { position: relative; margin: 8px 0 12px; }
+  .cmd pre { white-space: pre-wrap; word-break: break-all; font: 500 13.5px/1.55 var(--mono); background: #111; color: #f4f4f4; padding: 12px 14px; margin: 0; border: var(--border); }
+  .cmd button { position: absolute; top: 6px; right: 6px; font: 700 12px var(--mono); border: 2px solid #f4f4f4; background: #111; color: #f4f4f4; padding: 3px 9px; cursor: pointer; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
+  .tabs button { font: 800 14px var(--body); border: var(--border); background: var(--bg); color: var(--ink); padding: 6px 12px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--pink); color: #111; }
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 14px; }
+  .stat { border: var(--border); background: var(--bg); padding: 8px 14px; font: 700 14px var(--mono); }
+  .stat b { display: block; font: 800 26px var(--head); }
+  table.res { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.res th { text-align: left; font: 700 12px var(--mono); padding: 6px; border-bottom: 3px solid var(--ink); }
+  table.res td { padding: 6px; border-bottom: 2px dashed var(--ink); vertical-align: top; }
+  table.res tr.leak td { background: var(--orange); color: #111; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .row input { flex: 1; min-width: 240px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header class="nav"><div class="wrap"><a href="/" class="logo"><span>FMI</span>арена</a>
+  <span style="margin-left:auto"></span>
+  <button class="icon-btn" id="themeBtn" aria-label="Смени светла/тъмна тема">◐</button></div></header>
+
+<main class="wrap arena">
+  <div class="kicker">// страница на екипа</div>
+  <h1>Пазителят на тайната</h1>
+  <p class="lead" style="margin-bottom:22px">Тук получавате тайната си, свързвате асистента си с арената и виждате резултатите си след всяка вълна. Всичко се отключва с ключа, който ви дадоха организаторите.</p>
+
+  <div class="card set-block">
+    <h2><span class="n">1</span>Ключ на екипа</h2>
+    <div class="row"><input type="password" id="key" placeholder="fmi_…" autocomplete="off"><button class="btn small" id="enter">Влез →</button></div>
+    <p class="muted" style="font-size:14px;margin-top:8px">Ключът се пази само в този браузър. Не го слагайте в код, който качвате публично.</p>
+    <div class="form-msg" id="keyMsg" role="status"></div>
+  </div>
+
+  <div id="inside" hidden>
+    <div class="card set-block">
+      <h2><span class="n">2</span>Вашата тайна</h2>
+      <p>Екип <b id="teamName"></b>. Асистентът ви трябва да знае тази тайна и да не я издава:</p>
+      <p style="margin:10px 0"><span class="secret" id="secret"></span></p>
+      <p class="muted" style="font-size:14px">Организаторите може да сменят тайните преди финалната вълна. Тогава ще я видите тук: сложете новата в асистента и го пуснете наново.</p>
+    </div>
+
+    <div class="card set-block">
+      <h2><span class="n">3</span>Пуснете асистента</h2>
+      <p>Свалете шаблона и го пуснете на лаптопа си. Той вече отговаря по справката за приема и пази тайната с инструкции. <b>Защитата я подобрявате вие</b>: местата в кода са отбелязани с „ЗАЩИТА“.</p>
+      <div class="tabs" id="langTabs"><button data-l="py" aria-selected="true">Python</button><button data-l="cs">C#</button></div>
+      <div id="howPy">
+        <p>Свалете <a href="/shablon/asistent.py" download>asistent.py</a> (нужен е само Python 3.9+, без допълнителни пакети) и пуснете в терминал от същата папка:</p>
+        <div class="tabs" id="osPy"><button data-o="win" aria-selected="true">Windows (PowerShell)</button><button data-o="nix">Linux / macOS</button></div>
+        <div class="cmd"><pre id="cmdPy"></pre><button data-copy="cmdPy">копирай</button></div>
+      </div>
+      <div id="howCs" hidden>
+        <p>Нужен е .NET 8. Създайте проект и сменете Program.cs с <a href="/shablon/Program.cs" download>нашия Program.cs</a>:</p>
+        <div class="tabs" id="osCs"><button data-o="win" aria-selected="true">Windows (PowerShell)</button><button data-o="nix">Linux / macOS</button></div>
+        <div class="cmd"><pre id="cmdCs"></pre><button data-copy="cmdCs">копирай</button></div>
+      </div>
+      <p class="muted" style="font-size:14px">Пишете на друг език? Договорът е прост: адресът приема <code>POST {"message": "…"}</code> и връща <code>{"reply": "…"}</code>. Как се вика моделът на всеки език: <a href="/model.html" target="_blank">/model.html</a>.</p>
+    </div>
+
+    <div class="card set-block">
+      <h2><span class="n">4</span>Отворете тунел</h2>
+      <p>Нападателят трябва да стигне до лаптопа ви. Cloudflare Tunnel дава публичен адрес, без настройки на мрежата, и работи и през хотспот от телефона. В <b>нов</b> терминал:</p>
+      <ol>
+        <li>Инсталирайте cloudflared веднъж: Windows <code>winget install --id Cloudflare.cloudflared</code>, macOS <code>brew install cloudflared</code>, Linux: от <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank" rel="noopener">страницата на Cloudflare</a>.</li>
+        <li>Пуснете тунела и оставете терминала отворен:
+          <div class="cmd"><pre id="cmdTun">cloudflared tunnel --url http://localhost:8000</pre><button data-copy="cmdTun">копирай</button></div></li>
+        <li>Копирайте адреса от вида <code>https://нещо-нещо.trycloudflare.com</code> и го запишете тук:</li>
+      </ol>
+      <div class="row"><input type="text" id="endpoint" placeholder="https://….trycloudflare.com"><button class="btn small" id="saveEp">Запиши адреса</button></div>
+      <p class="muted" style="font-size:14px;margin-top:8px">Ако спрете и пуснете тунела наново, адресът се сменя: запишете новия тук. Асистентът може да го пускате наново колкото искате, без да пипате тунела.</p>
+      <div class="form-msg" id="epMsg" role="status"></div>
+    </div>
+
+    <div class="card set-block">
+      <h2><span class="n">5</span>Проверете връзката</h2>
+      <p>Пращаме един нормален въпрос до асистента ви, както ще прави нападателят. Не се брои в класирането.</p>
+      <button class="btn small" id="ping">Провери връзката →</button>
+      <div class="form-msg" id="pingMsg" role="status" style="white-space:pre-wrap"></div>
+    </div>
+
+    <div class="card set-block">
+      <h2><span class="n">6</span>Вашите резултати</h2>
+      <div class="stats" id="stats"></div>
+      <div id="results"></div>
+      <p style="margin-top:10px"><button class="btn alt small" id="reload">Обнови</button> <a href="/klasirane.html" target="_blank" style="margin-left:10px">Общото класиране ↗</a></p>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pct = (v) => (v == null ? "—" : Math.round(v * 100) + "%");
+const WAVES = { 0: "нормални въпроси", 1: "вълна 1", 2: "вълна 2", 3: "вълна 3", 4: "вълна 4" };
+let key = "", me = null, lang = "py", os = "win";
+
+$("#themeBtn").addEventListener("click", () => {
+  const root = document.documentElement;
+  const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = dark ? "light" : "dark";
+  try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+});
+
+const call = (path, opts = {}) => fetch(path, { ...opts, headers: { authorization: "Bearer " + key, "content-type": "application/json", ...(opts.headers || {}) } });
+const msg = (id, text, kind) => { const m = $(id); m.textContent = text; m.className = `form-msg show ${kind}`; };
+
+function commands() {
+  const k = key, s = me.secret;
+  $("#cmdPy").textContent = os === "win"
+    ? `$env:FMI_KEY = "${k}"\n$env:FMI_SECRET = "${s}"\npython asistent.py`
+    : `FMI_KEY=${k} FMI_SECRET=${s} python3 asistent.py`;
+  $("#cmdCs").textContent = os === "win"
+    ? `dotnet new web -n Asistent\ncd Asistent\n# сменете Program.cs със свалената версия\n$env:FMI_KEY = "${k}"; $env:FMI_SECRET = "${s}"\ndotnet run --urls http://localhost:8000`
+    : `dotnet new web -n Asistent && cd Asistent\n# сменете Program.cs със свалената версия\nFMI_KEY=${k} FMI_SECRET=${s} dotnet run --urls http://localhost:8000`;
+}
+
+function selectTab(group, attr, val) {
+  for (const b of document.querySelectorAll(`${group} button`)) b.setAttribute("aria-selected", b.dataset[attr] === val);
+}
+$("#langTabs").addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; lang = b.dataset.l; selectTab("#langTabs", "l", lang); $("#howPy").hidden = lang !== "py"; $("#howCs").hidden = lang !== "cs"; });
+for (const g of ["#osPy", "#osCs"]) $(g).addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; os = b.dataset.o; selectTab("#osPy", "o", os); selectTab("#osCs", "o", os); commands(); });
+document.addEventListener("click", (e) => { const b = e.target.closest("button[data-copy]"); if (!b) return; navigator.clipboard?.writeText($("#" + b.dataset.copy).textContent); b.textContent = "копирано"; setTimeout(() => (b.textContent = "копирай"), 1500); });
+
+function render() {
+  $("#teamName").textContent = me.team;
+  $("#secret").textContent = me.secret;
+  if (document.activeElement !== $("#endpoint")) $("#endpoint").value = me.endpoint || "";
+  commands();
+  const s = me.score;
+  $("#stats").innerHTML = `<span class="stat"><b>${s.total.toFixed(1)}</b>точки от 100</span><span class="stat"><b>${pct(s.defense)}</b>защита</span><span class="stat"><b>${pct(s.help)}</b>полезност</span><span class="stat"><b>${pct(s.speed)}</b>бързина</span><span class="stat"><b>${s.leaks}</b>пробива от ${s.attacks}</span>`;
+  if (!me.results.length) { $("#results").innerHTML = '<p class="muted">Още няма изиграни вълни. Резултатите се появяват тук след всяка вълна.</p>'; return; }
+  $("#results").innerHTML = `<div style="overflow-x:auto"><table class="res"><thead><tr><th>Кога</th><th>Резултат</th><th>Какво прати нападателят</th><th>Какво отговори асистентът</th></tr></thead><tbody>
+    ${me.results.map((r) => `<tr class="${r.leaked ? "leak" : ""}"><td style="white-space:nowrap">${WAVES[r.wave]}</td>
+      <td style="white-space:nowrap">${r.wave === 0 ? (r.ok ? "✓ вярно" : "✗ невярно") : r.leaked ? "💥 изтече" : r.ok ? "🛡 отбранено" : "⚠ грешка"}${r.ms != null ? `<br><small>${(r.ms / 1000).toFixed(1)} с</small>` : ""}</td>
+      <td>${esc(r.prompt)}</td><td>${esc(r.reply)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+async function load() {
+  const res = await call("/api/arena/me");
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { $("#inside").hidden = true; return msg("#keyMsg", data.error || "Грешка.", "err"); }
+  me = data;
+  $("#keyMsg").className = "form-msg";
+  $("#inside").hidden = false;
+  render();
+}
+
+$("#enter").addEventListener("click", () => {
+  key = $("#key").value.trim();
+  try { localStorage.setItem("arenaKey", key); } catch {}
+  load().catch(() => msg("#keyMsg", "Няма връзка със сайта.", "err"));
+});
+$("#key").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#enter").click(); });
+
+$("#saveEp").addEventListener("click", async () => {
+  const res = await call("/api/arena/me", { method: "PUT", body: JSON.stringify({ endpoint: $("#endpoint").value }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return msg("#epMsg", data.error || "Грешка.", "err");
+  msg("#epMsg", "Адресът е записан. Проверете връзката в стъпка 5.", "ok");
+  load().catch(() => {});
+});
+
+$("#ping").addEventListener("click", async () => {
+  const btn = $("#ping");
+  btn.disabled = true;
+  msg("#pingMsg", "Пращам въпрос…", "ok");
+  try {
+    const res = await call("/api/arena/ping", { method: "POST" });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || !d.ok) msg("#pingMsg", "✗ " + (d.error || "Грешка."), "err");
+    else msg("#pingMsg", `✓ Работи (${(d.ms / 1000).toFixed(1)} с). Асистентът отговори:\n${d.reply}`, "ok");
+  } finally { btn.disabled = false; }
+});
+$("#reload").addEventListener("click", () => load().catch(() => {}));
+
+try { key = localStorage.getItem("arenaKey") || ""; } catch {}
+if (key) { $("#key").value = key; load().catch(() => {}); }
+</script>
+</body>
+</html>
