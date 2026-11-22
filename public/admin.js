@@ -1265,6 +1265,7 @@ $("#arRun").addEventListener("click", async () => {
   btn.disabled = true;
   let done = 0, leaks = 0;
   const errors = [];
+  const by = {};
   const show = () => { msg.textContent = `Пускам… ${done} от ${total}${leaks ? ` · ${leaks} пробива` : ""}`; msg.className = "form-msg show ok"; };
   show();
   // Екипите едновременно, атаките на всеки екип една след друга.
@@ -1274,13 +1275,14 @@ $("#arRun").addEventListener("click", async () => {
         const res = await api("/api/admin/arena/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ team_id: t.team_id, wave, item: it.id }) });
         const r = await res.json().catch(() => ({}));
         if (!res.ok) errors.push(`${t.name}: ${r.error || res.status}`);
-        else { if (r.leaked) leaks++; if (r.error) errors.push(`${t.name}: ${r.error}`); }
+        else { if (r.leaked) leaks++; if (r.attacker) by[r.attacker] = (by[r.attacker] || 0) + 1; if (r.error) errors.push(`${t.name}: ${r.error}`); }
       } catch (err) { errors.push(`${t.name}: ${err.message}`); }
       done++; show();
     }
   }));
   btn.disabled = false;
-  msg.textContent = `Готово: ${total} заявки, ${leaks} пробива.${errors.length ? " Проблеми: " + [...new Set(errors)].slice(0, 5).join("; ") : ""}`;
+  const gens = Object.entries(by).map(([m, n]) => `${m}: ${n}`).join(", ");
+  msg.textContent = `Готово: ${total} заявки, ${leaks} пробива.${gens ? ` Атаките написа: ${gens}.` : ""}${errors.length ? " Проблеми: " + [...new Set(errors)].slice(0, 5).join("; ") : ""}`;
   msg.className = `form-msg show ${errors.length ? "err" : "ok"}`;
   loadArena().catch(() => {});
 });
