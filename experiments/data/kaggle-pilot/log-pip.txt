@@ -1,0 +1,25 @@
+/usr/local/lib/python3.13/dist-packages/nbformat/validator.py:434: MissingIDFieldWarning: Cell is missing an id field, this will become a hard error in future nbformat versions. You may want to use `normalize()` on your notebooks before validations (available since nbformat 5.1.4). Previous versions of nbformat are fixing this issue transparently, and will stop doing so in the future.
+  _validate(nbdict, ref, version, version_minor, relax_add_props)
+0.00s - Debugger warning: It seems that frozen modules are being used, which may
+0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+0.00s - to python to disable frozen modules.
+0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+0.00s - Debugger warning: It seems that frozen modules are being used, which may
+0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+0.00s - to python to disable frozen modules.
+0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+  Installing build dependencies ... [?25l[?25hdone
+  Getting requirements to build wheel ... [?25l[?25hdone
+  Installing backend dependencies ... [?25l[?25hdone
+  Preparing metadata (pyproject.toml) ... [?25l[?25hdone
+[31mERROR: Ignored the following yanked versions: 0.1.6, 0.1.7, 0.1.8, 0.1.9, 0.2.0, 0.2.1, 0.2.2, 0.2.2.post2, 0.2.2.post3[0m[31m
+[0m[31mERROR: Ignored the following versions that require a differe
+-----
+Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+  Installing build dependencies ... [?25l[?25hdone
+  Getting requirements to build wheel ... [?25l[?25hdone
+  Installing backend dependencies ... [?25l[?25hdone
+  Preparing metadata (pyproject.toml) ... [?25l[?25hdone
+[31mERROR: Ignored the following yanked versions: 0.1.6, 0.1.7, 0.1.8, 0.1.9, 0.2.0, 0.2.1, 0.2.2, 0.2.2.post2, 0.2.2.post3[0m[31m
+[0m[31mERROR: Ignored the following versions that require a different python version: 0.10.0 Requires-Python >=3.9,<3.13; 0.10.1 Requires-Python >=3.9,<3.13; 0.10.1.1 Requires-Python >=3.9,<3.13; 0.2.0 Requires-Python >=3.9,<3.13; 0.2.1 Requires-Python >=3.9,<3.13; 0.2.3 Requires-Python >=3.9,<3.13; 0.8.4 Requires-Python >=3.9,<3.13; 0.8.5 Requires-Python >=3.9,<3.13; 0.8.5.post1 Requires-Python >=3.9,<3.13; 0.9.0 Requires-Python >=3.9,<3.13; 0.9.0.1 Requires-Python >=3.9,<3.13; 0.9.1 Requires-Python >=3.9,<3.13; 0.9.2 Requires-Python >=3.9,<3.13; 1.0.0 Requires
+-----

@@ -31,14 +31,18 @@ export async function onRequestPost({ request, env }) {
   const { messages, error } = validateMessages(body?.messages);
   if (error) return json({ error }, 400);
 
+  // Само админът (експериментите) може да избере друг модел от Workers AI за една заявка.
+  const use = admin && typeof body.model === "string" && /^@cf\/[\w.\-/]+$/.test(body.model)
+    ? { ...settings, model: body.model, maxTokens: 1024 } : settings;
+
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content || "";
   const started = Date.now();
   try {
-    const reply = await runModel(env, settings, messages, body.max_tokens, body.temperature);
-    await logCall(env, key?.id ?? null, settings.model, true, Date.now() - started, lastUser, reply);
-    return json({ reply, model: settings.model });
+    const reply = await runModel(env, use, messages, body.max_tokens, body.temperature);
+    await logCall(env, key?.id ?? null, use.model, true, Date.now() - started, lastUser, reply);
+    return json({ reply, model: use.model });
   } catch (e) {
-    await logCall(env, key?.id ?? null, settings.model, false, Date.now() - started, lastUser, String(e?.message || e));
+    await logCall(env, key?.id ?? null, use.model, false, Date.now() - started, lastUser, String(e?.message || e));
     return json({ error: "Моделът не отговори: " + String(e?.message || e).slice(0, 200) }, 502);
   }
 }
