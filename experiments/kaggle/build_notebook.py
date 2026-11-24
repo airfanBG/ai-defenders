@@ -54,12 +54,35 @@ for name in ["HF_TOKEN", "ARENA_BASE", "ARENA_ADMIN"]:
         print(name, "✓")
     except Exception:
         print(name, "— няма")
-ATTACKER = "remote" if os.environ.get("ARENA_ADMIN") else "self"
-print("адаптивни атаки:", ATTACKER)
+os.environ.setdefault("ARENA_BASE", "https://ai-hackathon-k3b.pages.dev")
+import glob
+for _f in sorted(glob.glob("/kaggle/input/**/token.txt", recursive=True)):  # частен Dataset с EXPERIMENT_TOKEN
+    _t = open(_f, encoding="utf-8").read().strip()
+    if _t:
+        os.environ["ARENA_ADMIN"] = _t
+        print("ключ за експеримента: от", _f)
+        break
+if not os.environ.get("ARENA_ADMIN"):
+    raise SystemExit("Няма ключ: закачете частния Dataset с token.txt (или Kaggle Secret ARENA_ADMIN) и пуснете отново.")
+import json, urllib.request, urllib.error
+_req = urllib.request.Request(os.environ["ARENA_BASE"] + "/api/llm", data=json.dumps({
+    "messages": [{"role": "user", "content": "Say OK."}], "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+    "max_tokens": 5}).encode(), headers={"Authorization": "Bearer " + os.environ["ARENA_ADMIN"], "Content-Type": "application/json"})
+try:
+    with urllib.request.urlopen(_req, timeout=120) as _r:
+        _out = json.loads(_r.read().decode())
+except urllib.error.HTTPError as e:
+    raise SystemExit(f"Сайтът отказа ARENA_ADMIN ({e.code}): ключът в Kaggle не съвпада с EXPERIMENT_TOKEN в Cloudflare.")
+if _out.get("model", "").find("llama-3.3-70b") < 0:
+    raise SystemExit(f"Сайтът не използва Llama 70B за админа: {_out}")
+ATTACKER = "remote"
+print("адаптивни атаки: Llama 3.3 70B през", os.environ["ARENA_BASE"], "→", repr(_out.get("reply")))
 """),
     writefile("arena_exp.py"),
     writefile("run_model.py"),
     code("%%writefile corpus.json\n" + (HERE / "corpus.json").read_text(encoding="utf-8")),
+    code("%%writefile corpus_tt.json\n" + (HERE / "corpus_tt.json").read_text(encoding="utf-8")),
+    code("%%writefile chain.json\n" + (HERE / "chain.json").read_text(encoding="utf-8")),
     md("""
 ## Моделите
 
@@ -76,13 +99,19 @@ ALL_MODELS = [
 MODELS = [m for m in ALL_MODELS if m[1] in {MODEL_KEYS!r}]
 for model, key in MODELS:
     print("=====", model)
-    !python run_model.py --model "{{model}}" --key {{key}} --reps {{REPS}} --out results.jsonl --attacker {{ATTACKER}}
+    !python run_model.py --model "{{model}}" --key {{key}} --reps {{REPS}} --out results.jsonl --attacker {{ATTACKER}} --external --chain chain.jsonl
 """),
     md("## Резултати"),
     code("""
 import arena_exp as A
 table, by_class, adaptive = A.summarize("results.jsonl")
 table.to_csv("summary_by_cell.csv"); by_class.to_csv("asr_by_class.csv"); adaptive.to_csv("asr_adaptive.csv")
+import json
+import pandas as pd
+ch = pd.DataFrame([json.loads(l) for l in open("chain.jsonl", encoding="utf-8")])
+chain = (ch.pivot_table(index=["model", "lang", "defense"], columns="kind", values=["leaked", "ok", "leak_inner"], aggfunc="mean") * 100).round(1)
+chain.to_csv("chain_summary.csv")
+print(chain.to_string())
 """),
 ]
 

@@ -12,7 +12,10 @@ export async function onRequestPost({ request, env }) {
   if (!token) return json({ error: "Липсва ключ: Authorization: Bearer fmi_…" }, 401);
 
   let key = null;
-  const admin = !token.startsWith("fmi_") && (await isAdmin(request, env));
+  // EXPERIMENT_TOKEN (по желание): отделен ключ само за експериментите, без достъп до админ панела.
+  const experiment = !!env.EXPERIMENT_TOKEN && env.EXPERIMENT_TOKEN.length >= 20 && !token.startsWith("fmi_")
+    && (await hashKey(token)) === (await hashKey(env.EXPERIMENT_TOKEN));
+  const admin = experiment || (!token.startsWith("fmi_") && (await isAdmin(request, env)));
   if (!admin) {
     key = await env.DB.prepare("SELECT * FROM llm_keys WHERE key_hash = ?").bind(await hashKey(token)).first();
     if (!key) return json({ error: "Невалиден ключ." }, 401);
