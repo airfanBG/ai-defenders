@@ -280,7 +280,7 @@ class HTTPBackend:
         body = {"messages": messages, "model": self.name, "max_tokens": max_tokens, "temperature": temperature}
         for attempt in range(5):
             req = urllib.request.Request(self.base + "/api/llm", data=json.dumps(body, ensure_ascii=False).encode(),
-                                         headers={"Authorization": "Bearer " + self.admin, "Content-Type": "application/json"})
+                                         headers={"Authorization": "Bearer " + self.admin, "Content-Type": "application/json", "User-Agent": "secret-keeper-experiments/1.0"})
             try:
                 with urllib.request.urlopen(req, timeout=120) as r:
                     return json.loads(r.read().decode()).get("reply", "")

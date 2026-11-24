@@ -67,12 +67,12 @@ if not os.environ.get("ARENA_ADMIN"):
 import json, urllib.request, urllib.error
 _req = urllib.request.Request(os.environ["ARENA_BASE"] + "/api/llm", data=json.dumps({
     "messages": [{"role": "user", "content": "Say OK."}], "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
-    "max_tokens": 5}).encode(), headers={"Authorization": "Bearer " + os.environ["ARENA_ADMIN"], "Content-Type": "application/json"})
+    "max_tokens": 5}).encode(), headers={"Authorization": "Bearer " + os.environ["ARENA_ADMIN"], "Content-Type": "application/json", "User-Agent": "secret-keeper-experiments/1.0"})
 try:
     with urllib.request.urlopen(_req, timeout=120) as _r:
         _out = json.loads(_r.read().decode())
 except urllib.error.HTTPError as e:
-    raise SystemExit(f"Сайтът отказа ARENA_ADMIN ({e.code}): ключът в Kaggle не съвпада с EXPERIMENT_TOKEN в Cloudflare.")
+    raise SystemExit(f"Сайтът отказа ({e.code}): {e.read().decode(errors='replace')[:300]}")
 if _out.get("model", "").find("llama-3.3-70b") < 0:
     raise SystemExit(f"Сайтът не използва Llama 70B за админа: {_out}")
 ATTACKER = "remote"
