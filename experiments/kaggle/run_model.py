@@ -33,6 +33,13 @@ if a.attacker == "remote":
     print("нападател Llama 3.3 70B:", repr(probe))
 else:
     attacker = backend
-A.run(backend, model_key=a.key, out=a.out, reps=a.reps, langs=langs, attacker=attacker, external=a.external)
+failed = None
+try:
+    A.run(backend, model_key=a.key, out=a.out, reps=a.reps, langs=langs, attacker=attacker, external=a.external)
+except RuntimeError as e:  # напр. дневният лимит на Workers AI: веригата не зависи от нападателя, затова продължаваме
+    failed = e
+    print("СПРЯ основният тест:", e)
 if a.chain:
     A.run_chain(backend, model_key=a.key, out=a.chain, reps=a.reps, langs=langs)
+if failed:
+    sys.exit("Основният тест не е завършен; пуснете пак, за да продължи.")

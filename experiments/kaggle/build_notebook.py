@@ -83,6 +83,18 @@ print("адаптивни атаки: Llama 3.3 70B през", os.environ["ARENA
     code("%%writefile corpus.json\n" + (HERE / "corpus.json").read_text(encoding="utf-8")),
     code("%%writefile corpus_tt.json\n" + (HERE / "corpus_tt.json").read_text(encoding="utf-8")),
     code("%%writefile chain.json\n" + (HERE / "chain.json").read_text(encoding="utf-8")),
+    code("""
+# Продължаване: частни резултати от предишно пускане (Dataset с results_<модел>.jsonl и chain_<модел>.jsonl)
+import glob
+MODEL_KEYS = __MK__
+for _kind in ["results", "chain"]:
+    _parts = sorted([f for _k in MODEL_KEYS for f in glob.glob(f"/kaggle/input/**/{_kind}_{_k}.jsonl", recursive=True)])
+    if _parts and not os.path.exists(f"{_kind}.jsonl"):
+        with open(f"{_kind}.jsonl", "w", encoding="utf-8") as _o:
+            for _f in _parts:
+                _o.write(open(_f, encoding="utf-8").read())
+        print("продължавам от", _parts)
+""".replace("__MK__", repr(MODEL_KEYS))),
     md("""
 ## Моделите
 

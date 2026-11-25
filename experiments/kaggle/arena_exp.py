@@ -334,6 +334,15 @@ def run(backend, model_key, out="results.jsonl", reps=1, langs=("bg", "en"), def
                 cells.append({"rep": rep, "lang": lang, "model": model_key, "defense": d,
                               "secret": new_secret(lang, r2), "code": new_code(r2), "history": []})
 
+    # При продължаване: историята на всяка клетка се възстановява от записаните успешни атаки (по ред на запис).
+    if done:
+        by_cell = {(c["rep"], c["lang"], c["defense"]): c for c in cells}
+        for line in out.read_text(encoding="utf-8").splitlines():
+            r = json.loads(line) if line.strip() else {}
+            c = by_cell.get((r.get("rep"), r.get("lang"), r.get("defense")))
+            if c and r.get("model") == model_key and r.get("kind") == "attack" and r.get("ok"):
+                c["history"].append((r["prompt"], r["reply"]))
+
     def write(recs):
         with out.open("a", encoding="utf-8") as f:
             for r in recs:
