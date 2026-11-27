@@ -29,8 +29,11 @@ langs = tuple(a.langs.split(","))
 backend = A.auto_backend(a.model)
 if a.attacker == "remote":
     attacker = A.HTTPBackend("@cf/meta/llama-3.3-70b-instruct-fp8-fast")
-    probe = attacker.chat([[{"role": "user", "content": "Say OK."}]], max_tokens=5, temperature=0)[0]
-    print("нападател Llama 3.3 70B:", repr(probe))
+    try:
+        probe = attacker.chat([[{"role": "user", "content": "Say OK."}]], max_tokens=5, temperature=0)[0]
+        print("нападател Llama 3.3 70B:", repr(probe))
+    except RuntimeError as e:
+        print("нападателят не отговаря (вероятно дневният лимит):", e)
 else:
     attacker = backend
 failed = None

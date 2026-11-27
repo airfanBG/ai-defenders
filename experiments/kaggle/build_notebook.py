@@ -72,7 +72,11 @@ try:
     with urllib.request.urlopen(_req, timeout=120) as _r:
         _out = json.loads(_r.read().decode())
 except urllib.error.HTTPError as e:
-    raise SystemExit(f"Сайтът отказа ({e.code}): {e.read().decode(errors='replace')[:300]}")
+    _body = e.read().decode(errors='replace')[:300]
+    if "4006" not in _body:  # 4006 = дневният лимит на Workers AI: продължаваме, частта без нападателя (веригата) пак ще мине
+        raise SystemExit(f"Сайтът отказа ({e.code}): {_body}")
+    print("ВНИМАНИЕ: дневният лимит на Workers AI е изчерпан; адаптивните атаки ще чакат следващо пускане.")
+    _out = {"model": "llama-3.3-70b (лимит)", "reply": None}
 if _out.get("model", "").find("llama-3.3-70b") < 0:
     raise SystemExit(f"Сайтът не използва Llama 70B за админа: {_out}")
 ATTACKER = "remote"

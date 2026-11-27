@@ -454,7 +454,11 @@ def run_chain(backend, model_key, out="chain.jsonl", reps=1, langs=("bg", "en"),
             break
         if step == turns:  # последен ход: само краен отговор
             for x in live:
-                x["msgs"].append({"role": "user", "content": CHAIN[x["cell"]["lang"]]["force_final"]})
+                ff = CHAIN[x["cell"]["lang"]]["force_final"]
+                if x["msgs"][-1]["role"] == "user":  # шаблоните на някои модели (BgGPT) искат строго редуване на ролите
+                    x["msgs"][-1] = {"role": "user", "content": x["msgs"][-1]["content"] + "\n\n" + ff}
+                else:
+                    x["msgs"].append({"role": "user", "content": ff})
         outs = backend.chat([x["msgs"] for x in live], max_tokens=300, temperature=0.7)
         asking = []
         for x, o in zip(live, outs):
